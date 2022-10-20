@@ -5,8 +5,12 @@ import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.image.BufferedImage
-import java.io.FileOutputStream
+import java.io.File
+import java.io.IOException
+import javax.imageio.IIOImage
 import javax.imageio.ImageIO
+import javax.imageio.ImageWriteParam
+import javax.imageio.ImageWriter
 
 enum class TextPos {
     LEFT_TOP,
@@ -29,17 +33,15 @@ fun addTextWaterMark(
     textColor: Color,
     fontSize: Int,
     text: String,
-    outPath: String,
-    textPos: TextPos
+    outPath: File,
+    textPos: TextPos,
+    outputQuality: Float
 ) {
     try {
         val width: Int = targetImg.width //图片宽
         val height: Int = targetImg.height //图片高
 
-        val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_BGR)
-
-        val graphics: Graphics2D = bufferedImage.createGraphics()
-        graphics.drawImage(targetImg, 0, 0, width, height, null)
+        val graphics: Graphics2D = targetImg.createGraphics()
         graphics.color = textColor //水印颜色
         graphics.font = Font(null, Font.PLAIN, fontSize)
 
@@ -52,14 +54,27 @@ fun addTextWaterMark(
 
         graphics.drawString(text, x, y)
 
-        val outImgStream = FileOutputStream(outPath)
-        ImageIO.write(bufferedImage, "jpg", outImgStream)
-        outImgStream.flush()
-        outImgStream.close()
+        // 写入输出流
+        saveImage(targetImg, outPath, outputQuality)
         graphics.dispose()
     } catch (e: Exception) {
         e.printStackTrace()
     }
+}
+
+@Throws(IOException::class)
+fun saveImage(image: BufferedImage?, saveFile: File?, quality: Float) {
+    val outputStream = ImageIO.createImageOutputStream(saveFile)
+    val jpgWriter: ImageWriter = ImageIO.getImageWritersByFormatName("jpg").next()
+    val jpgWriteParam: ImageWriteParam = jpgWriter.defaultWriteParam
+    jpgWriteParam.compressionMode = ImageWriteParam.MODE_EXPLICIT
+    jpgWriteParam.compressionQuality = quality
+    jpgWriter.output = outputStream
+    val outputImage = IIOImage(image, null, null)
+    jpgWriter.write(null, outputImage, jpgWriteParam)
+    jpgWriter.dispose()
+    outputStream.flush()
+    outputStream.close()
 }
 
 private fun TextPos.getPoint(

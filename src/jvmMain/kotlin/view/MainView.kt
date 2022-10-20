@@ -87,11 +87,14 @@ fun MainPager(window: ComposeWindow) {
             )
 
             ControlContent(
-                onStart = { outputPath: String, isUsingSourcePath: Boolean, textPos: TextPos, textColor: String, textSize: String, dateFormat: String, timeZone: String ->
+                onStart = { outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone, outputQualityText ->
                     coroutineScope.launch {
                         isRunning = true
                         dialogText = "正在处理中"
-                        val result = AddText.startAdd(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, fileList, timeZone) {
+                        val result = AddText.startAdd(
+                            outputPath, isUsingSourcePath, textPos, textColor, textSize,
+                            dateFormat, fileList, timeZone, outputQualityText
+                        ) {
                             dialogText = "正在处理中：$it"
                         }
                         result.fold(
@@ -141,7 +144,8 @@ fun ControlContent(
         textColor: String,
         textSize: String,
         dateFormat: String,
-        timeZone: String
+        timeZone: String,
+        outputQualityText: String,
     ) -> Unit,
     enabled: Boolean
 ) {
@@ -152,6 +156,7 @@ fun ControlContent(
     var textSize by remember { mutableStateOf("80") }
     var dateFormat by remember { mutableStateOf("yyyy.MM.dd HH:mm:ss") }
     var timeZone by remember { mutableStateOf("GMT+8:00") }
+    var outputQualityText by remember { mutableStateOf("0.7") }
 
     Card(
         modifier = Modifier.size(CardSize).padding(vertical = 32.dp),
@@ -196,6 +201,18 @@ fun ControlContent(
                     }
                 )
                 Text("输出至原路径", fontSize = 12.sp)
+            }
+
+            Row(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("导出图像质量（0.0-1.0）：")
+                OutlinedTextField(
+                    value = outputQualityText,
+                    onValueChange = { outputQualityText = it },
+                    modifier = Modifier.width(CardSize.width / 4)
+                )
             }
 
             Row(
@@ -257,7 +274,7 @@ fun ControlContent(
                         value = timeZone,
                         onValueChange = { timeZone = it },
                         label = {
-                            Text("时区）")
+                            Text("时区")
                         }
                     )
                 }
@@ -265,7 +282,7 @@ fun ControlContent(
 
             Button(
                 onClick = {
-                    onStart(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone)
+                    onStart(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone, outputQualityText)
                           },
                 modifier = Modifier.padding(top = 8.dp),
                 enabled = enabled

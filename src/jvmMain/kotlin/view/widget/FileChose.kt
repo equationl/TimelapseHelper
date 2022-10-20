@@ -87,7 +87,7 @@ fun filterFileList(fileList: Array<File>): List<File> {
             newFileList.addAll(getAllFile(file))
         }
         else {
-            if (file.extension in legalSuffixList) {
+            if (file.extension.lowercase() in legalSuffixList) {
                 newFileList.add(file)
             }
         }
@@ -101,7 +101,7 @@ private fun getAllFile(file: File): List<File> {
     val fileTree = file.walk()
     fileTree.maxDepth(Int.MAX_VALUE)
         .filter { it.isFile }
-        .filter { it.extension in legalSuffixList }
+        .filter { it.extension.lowercase() in legalSuffixList }
         .forEach {
             newFileList.add(it)
         }

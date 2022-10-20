@@ -20,13 +20,14 @@ object AddText {
         dateFormat: String,
         fileList: List<File>,
         timeZone: String,
+        outputQualityText: String,
         onProgress: (msg: String) -> Unit
     ): Result<List<String>> {
         val failFileList = mutableListOf<String>()
 
         onProgress("检查参数")
         val checkValueResult = withContext(Dispatchers.IO) {
-            checkValue(outputPath, textColor, textSize, dateFormat, isUsingSourcePath)
+            checkValue(outputPath, textColor, textSize, dateFormat, isUsingSourcePath, outputQualityText)
         }
 
         if (checkValueResult.isFailure) return Result.failure(checkValueResult.exceptionOrNull()?: AddTextException())
@@ -36,7 +37,7 @@ object AddText {
         withContext(Dispatchers.IO) {
             fileList.forEachIndexed { index, file ->
                 onProgress("正在处理第 ${index+1} 张图片")
-                val result = addWatermark(file, outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone)
+                val result = addWatermark(file, outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone, outputQualityText)
                 if (result.isFailure) {
                     failFileList.add("$file : ${result.exceptionOrNull()}")
                     onProgress("第 ${index+1} 张处理失败：${result.exceptionOrNull()}")
@@ -57,7 +58,8 @@ private fun addWatermark(
     textColor: String,
     textSize: String,
     dateFormat: String,
-    timeZone: String
+    timeZone: String,
+    outputQualityText: String
 ): Result<File> {
     val date = getDateFromExif(file, timeZone) ?: return Result.failure(AddTextException("获取时间戳失败！"))
 
@@ -65,7 +67,7 @@ private fun addWatermark(
 
     val saveFile = if (isUsingSourcePath) file.getUniqueFile() else File(outputPath).getUniqueFile(file)
 
-    return addTextToJpg(file, saveFile, textColor, textSize, textPos, dateString)
+    return addTextToJpg(file, saveFile, textColor, textSize, textPos, dateString, outputQualityText)
 }
 
 private fun addTextToJpg(
@@ -74,7 +76,8 @@ private fun addTextToJpg(
     textColor: String,
     textSize: String,
     textPos: TextPos,
-    text: String
+    text: String,
+    outputQualityText: String
 ): Result<File> {
     val color = textColor.toAwtColor ?: return Result.failure(AddTextException("水印文字颜色错误"))
     val size = try {
@@ -82,10 +85,15 @@ private fun addTextToJpg(
     } catch (tr: Throwable) {
         return Result.failure(AddTextException("水印文字尺寸错误"))
     }
+    val outputQuality = try {
+        outputQualityText.toFloat()
+    } catch (tr: Throwable) {
+        return Result.failure(AddTextException("压缩质量错误"))
+    }
 
     return try {
         val image: BufferedImage = ImageIO.read(file)
-        addTextWaterMark(image, color, size, text, outputFile.absolutePath, textPos)
+        addTextWaterMark(image, color, size, text, outputFile, textPos, outputQuality)
         Result.success(outputFile)
     } catch (tr: Throwable) {
         Result.failure(tr)
@@ -137,7 +145,8 @@ private fun checkValue(
     textColor: String,
     textSize: String,
     dateFormat: String,
-    isUsingSourcePath: Boolean
+    isUsingSourcePath: Boolean,
+    outputQualityText: String
 ): Result<Boolean> {
     if (!isUsingSourcePath) {
         val outFile = File(outputPath)
@@ -158,6 +167,13 @@ private fun checkValue(
     } catch (tr: Throwable) {
         tr.printStackTrace()
         return Result.failure(AddTextException("参数错误：水印文字尺寸错误"))
+    }
+
+    try {
+        outputQualityText.toFloat()
+    } catch (tr: Throwable) {
+        tr.printStackTrace()
+        return Result.failure(AddTextException("参数错误：导出质量错误"))
     }
 
     try {
