@@ -11,9 +11,14 @@ import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.filechooser.FileNameExtensionFilter
 
+val legalSuffixList: Array<String> = arrayOf("jpg", "jpeg")
+
 fun showFileSelector(
-    onFileSelected: (Array<File>) -> Unit,
     suffixList: Array<String> = arrayOf("jpg", "jpeg"),
+    isMultiSelection: Boolean = true,
+    selectionMode: Int = JFileChooser.FILES_AND_DIRECTORIES, // 可以选择目录和文件
+    selectionFileFilter: FileNameExtensionFilter? = FileNameExtensionFilter("图片(.jpg .jpeg)", *suffixList), // 文件过滤
+    onFileSelected: (Array<File>) -> Unit,
     ) {
     JFileChooser().apply {
         try {
@@ -24,13 +29,19 @@ fun showFileSelector(
             e.printStackTrace()
         }
 
-        fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES // 可以选择目录和文件
-        isMultiSelectionEnabled = true // 允许多选
-        fileFilter = FileNameExtensionFilter("图片(.jpg .jpeg)", *suffixList) // 文件过滤
+        fileSelectionMode = selectionMode
+        isMultiSelectionEnabled = isMultiSelection
+        fileFilter = selectionFileFilter
 
         val result = showOpenDialog(ComposeWindow())
         if (result == JFileChooser.APPROVE_OPTION) {
-            onFileSelected(this.selectedFiles)
+            if (isMultiSelection) {
+                onFileSelected(this.selectedFiles)
+            }
+            else {
+                val resultArray = arrayOf(this.selectedFile)
+                onFileSelected(resultArray)
+            }
         }
     }
 }
@@ -57,4 +68,43 @@ fun dropFileTarget(
             event.dropComplete(true)
         }
     }
+}
+
+fun filterFileList(fileList: List<String>): List<File> {
+    val newFile = mutableListOf<File>()
+    fileList.map {path ->
+        newFile.add(File(path))
+    }
+
+    return filterFileList(newFile.toTypedArray())
+}
+
+fun filterFileList(fileList: Array<File>): List<File> {
+    val newFileList = mutableListOf<File>()
+
+    for (file in fileList) {
+        if (file.isDirectory) {
+            newFileList.addAll(getAllFile(file))
+        }
+        else {
+            if (file.extension in legalSuffixList) {
+                newFileList.add(file)
+            }
+        }
+    }
+
+    return newFileList
+}
+
+private fun getAllFile(file: File): List<File> {
+    val newFileList = mutableListOf<File>()
+    val fileTree = file.walk()
+    fileTree.maxDepth(Int.MAX_VALUE)
+        .filter { it.isFile }
+        .filter { it.extension in legalSuffixList }
+        .forEach {
+            newFileList.add(it)
+        }
+
+    return newFileList
 }

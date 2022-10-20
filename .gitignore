@@ -40,3 +40,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Custom ###
+/src/jvmMain/kotlin/test.kt

@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
@@ -15,8 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.launch
 import ui.BackgroundColor
 import ui.CardColor
@@ -24,30 +28,35 @@ import ui.CardSize
 import utils.AddText
 import utils.TextPos
 import view.widget.dropFileTarget
+import view.widget.filterFileList
+import view.widget.legalSuffixList
 import view.widget.showFileSelector
 import java.io.File
 import java.util.*
+import javax.swing.JFileChooser
 
 
 @Composable
 fun MainPager(window: ComposeWindow) {
+    val dialogScrollState = rememberScrollState()
     val fileList = mutableStateListOf<File>()
     val coroutineScope = rememberCoroutineScope()
 
-    DisposableEffect(Unit) {
-        // 拖拽文件
-        window.contentPane.dropTarget = dropFileTarget {
-            val newFile = mutableListOf<File>()
-            it.map {path ->
-                // TODO 记得做文件过滤，以及如果是文件夹的话遍历文件夹
-                newFile.add(File(path))
-            }
+    var dialogText by remember { mutableStateOf("") }
+    var isRunning by remember { mutableStateOf(false) }
 
-            fileList.addAll(newFile)
-        }
+    window.contentPane.dropTarget = dropFileTarget {
+        fileList.addAll(filterFileList(it))
+    }
+
+    /*DisposableEffect(Unit) {
+        // 拖拽文件
+        *//*window.contentPane.dropTarget = dropFileTarget {
+            fileList.addAll(filterFileList(it))
+        }*//*
 
         onDispose {  }
-    }
+    }*/
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -62,9 +71,7 @@ fun MainPager(window: ComposeWindow) {
                 onclick = {
                     showFileSelector(
                         onFileSelected = {
-                            // TODO 记得做文件过滤，以及如果是文件夹的话遍历文件夹
-
-                            fileList.addAll(it)
+                            fileList.addAll(filterFileList(it))
                         }
                     )
                 },
@@ -79,15 +86,48 @@ fun MainPager(window: ComposeWindow) {
                 fileList = fileList.toList()
             )
 
-
             ControlContent(
-                onStart = { outputPath: String, isUsingSourcePath: Boolean, textPos: TextPos, textColor: String, textSize: String, dateFormat: String ->
+                onStart = { outputPath: String, isUsingSourcePath: Boolean, textPos: TextPos, textColor: String, textSize: String, dateFormat: String, timeZone: String ->
                     coroutineScope.launch {
-                        AddText.startAdd(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, fileList)
+                        isRunning = true
+                        dialogText = "正在处理中"
+                        val result = AddText.startAdd(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, fileList, timeZone) {
+                            dialogText = "正在处理中：$it"
+                        }
+                        result.fold(
+                            { stringList ->
+                                isRunning = false
+                                dialogText = "处理完成！"
+                                var failText = ""
+                                stringList.map { failText += "$it\n" }
+                                if (stringList.isNotEmpty()) dialogText += "\n以下文件处理失败\n$failText"
+                            },
+                            {
+                                isRunning = false
+                                dialogText = "错误：${result.exceptionOrNull().toString()}"
+                            }
+                        )
                     }
-                }
+                },
+                enabled = fileList.isNotEmpty()
             )
 
+        }
+    }
+
+    if (dialogText.isNotBlank()) {
+        Dialog(
+            onCloseRequest = { if (!isRunning) dialogText = "" },
+            title = if (isRunning) "处理中" else "处理完成",
+            resizable = false
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(8.dp).verticalScroll(dialogScrollState),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(dialogText)
+            }
         }
     }
 }
@@ -100,16 +140,18 @@ fun ControlContent(
         textPos: TextPos,
         textColor: String,
         textSize: String,
-        dateFormat: String
-    ) -> Unit
+        dateFormat: String,
+        timeZone: String
+    ) -> Unit,
+    enabled: Boolean
 ) {
-    var outputPath by remember { mutableStateOf("") }
+    var outputPath by remember { mutableStateOf("原路径") }
     var isUsingSourcePath by remember { mutableStateOf(true) }
-    var textPos by remember { mutableStateOf(TextPos.Left_Bottom) }
-    var textColor by remember { mutableStateOf("#FF000000") }
+    var textPos by remember { mutableStateOf(TextPos.LEFT_BOTTOM) }
+    var textColor by remember { mutableStateOf("#FFCCCCCC") }
     var textSize by remember { mutableStateOf("80") }
-    var dateFormat by remember { mutableStateOf("yyyy:HH:dd hh:mm:ss") }
-
+    var dateFormat by remember { mutableStateOf("yyyy.MM.dd HH:mm:ss") }
+    var timeZone by remember { mutableStateOf("GMT+8:00") }
 
     Card(
         modifier = Modifier.size(CardSize).padding(vertical = 32.dp),
@@ -129,10 +171,20 @@ fun ControlContent(
                     value = outputPath,
                     onValueChange = { outputPath = it },
                     modifier = Modifier.width(CardSize.width / 3),
-                    enabled = !isUsingSourcePath             )
+                    enabled = !isUsingSourcePath
+                )
                 Button(
-                    onClick = { /*TODO*/ },
-                    modifier = Modifier.padding(start = 8.dp)
+                    onClick = {
+                        showFileSelector(
+                            isMultiSelection = false,
+                            selectionMode = JFileChooser.DIRECTORIES_ONLY,
+                            selectionFileFilter = null
+                        ) {
+                            outputPath = it[0].absolutePath
+                        }
+                    },
+                    modifier = Modifier.padding(start = 8.dp),
+                    enabled = !isUsingSourcePath
                 ) {
                     Text("选择")
                 }
@@ -154,11 +206,11 @@ fun ControlContent(
 
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.Left_Top, { textPos = TextPos.Left_Top })
+                        RadioButton(textPos == TextPos.LEFT_TOP, { textPos = TextPos.LEFT_TOP })
                         Text("左上角")
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.Left_Bottom, { textPos = TextPos.Left_Bottom })
+                        RadioButton(textPos == TextPos.LEFT_BOTTOM, { textPos = TextPos.LEFT_BOTTOM })
                         Text("左下角")
                     }
                 }
@@ -166,11 +218,11 @@ fun ControlContent(
                 Column {
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.Right_Top, { textPos = TextPos.Right_Top })
+                        RadioButton(textPos == TextPos.RIGHT_TOP, { textPos = TextPos.RIGHT_TOP })
                         Text("右上角")
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.Right_Bottom, { textPos = TextPos.Right_Bottom })
+                        RadioButton(textPos == TextPos.RIGHT_BOTTOM, { textPos = TextPos.RIGHT_BOTTOM })
                         Text("右下角")
                     }
 
@@ -201,14 +253,22 @@ fun ControlContent(
                             Text("日期格式")
                         }
                     )
+                    OutlinedTextField(
+                        value = timeZone,
+                        onValueChange = { timeZone = it },
+                        label = {
+                            Text("时区）")
+                        }
+                    )
                 }
             }
 
             Button(
                 onClick = {
-                    onStart(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat)
+                    onStart(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone)
                           },
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
+                enabled = enabled
             ) {
                 Text("开始")
             }
@@ -239,7 +299,10 @@ fun ImageContent(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "请点击选择文件（夹）或拖拽文件（夹）至此")
+                Text(
+                    text = "请点击选择文件（夹）或拖拽文件（夹）至此\n仅支持 ${legalSuffixList.contentToString()}",
+                    textAlign = TextAlign.Center
+                )
             }
         }
         else {
