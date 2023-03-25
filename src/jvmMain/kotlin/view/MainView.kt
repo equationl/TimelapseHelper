@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,8 +26,7 @@ import kotlinx.coroutines.launch
 import ui.BackgroundColor
 import ui.CardColor
 import ui.CardSize
-import utils.AddText
-import utils.TextPos
+import utils.*
 import view.widget.dropFileTarget
 import view.widget.filterFileList
 import view.widget.legalSuffixList
@@ -152,14 +152,14 @@ fun ControlContent(
     var outputPath by remember { mutableStateOf("原路径") }
     var isUsingSourcePath by remember { mutableStateOf(true) }
     var textPos by remember { mutableStateOf(TextPos.LEFT_BOTTOM) }
-    var textColor by remember { mutableStateOf("#FFCCCCCC") }
-    var textSize by remember { mutableStateOf("80") }
+    val textColorFilter = remember { FilterColorHex(defaultValue = TextFieldValue("#FFCCCCCC")) }
+    val textSizeFilter = remember { FilterNumber(minValue = 1.0, decimalNumber = 0, defaultValue = TextFieldValue("80")) }
     var dateFormat by remember { mutableStateOf("yyyy.MM.dd HH:mm:ss") }
-    var timeZone by remember { mutableStateOf("GMT+8:00") }
-    var outputQualityText by remember { mutableStateOf("0.7") }
+    val timeZoneFilter = remember { FilterGMT(TextFieldValue("GMT+8:00")) }
+    val outputQualityTextFilter = remember { FilterNumber(minValue = 0.0, maxValue = 1.0, defaultValue = TextFieldValue("0.7")) }
 
     Card(
-        modifier = Modifier.size(CardSize).padding(vertical = 32.dp),
+        modifier = Modifier.size(CardSize).padding(16.dp),
         shape = RoundedCornerShape(8.dp),
         elevation = 4.dp,
         backgroundColor = CardColor
@@ -209,8 +209,8 @@ fun ControlContent(
             ) {
                 Text("导出图像质量（0.0-1.0）：")
                 OutlinedTextField(
-                    value = outputQualityText,
-                    onValueChange = { outputQualityText = it },
+                    value = outputQualityTextFilter.getInputValue(),
+                    onValueChange = outputQualityTextFilter.onValueChange(),
                     modifier = Modifier.width(CardSize.width / 4)
                 )
             }
@@ -250,15 +250,15 @@ fun ControlContent(
                 Text("水印设置：")
                 Column {
                     OutlinedTextField(
-                        value = textColor,
-                        onValueChange = { textColor = it},
+                        value = textColorFilter.getInputValue(),
+                        onValueChange = textColorFilter.onValueChange(),
                         label = {
                             Text("文字颜色")
                         }
                     )
                     OutlinedTextField(
-                        value = textSize,
-                        onValueChange = { textSize = it },
+                        value = textSizeFilter.getInputValue(),
+                        onValueChange = textSizeFilter.onValueChange(),
                         label = {
                             Text("文字尺寸")
                         }
@@ -271,8 +271,8 @@ fun ControlContent(
                         }
                     )
                     OutlinedTextField(
-                        value = timeZone,
-                        onValueChange = { timeZone = it },
+                        value = timeZoneFilter.getInputValue(),
+                        onValueChange = timeZoneFilter.onValueChange(),
                         label = {
                             Text("时区")
                         }
@@ -282,7 +282,16 @@ fun ControlContent(
 
             Button(
                 onClick = {
-                    onStart(outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone, outputQualityText)
+                    onStart(
+                        outputPath,
+                        isUsingSourcePath,
+                        textPos,
+                        textColorFilter.getInputValue().text,
+                        textSizeFilter.getInputValue().text,
+                        dateFormat,
+                        timeZoneFilter.getInputValue().text,
+                        outputQualityTextFilter.getInputValue().text
+                    )
                           },
                 modifier = Modifier.padding(top = 8.dp),
                 enabled = enabled
