@@ -1,9 +1,7 @@
-import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("multiplatform")
+    kotlin("jvm")
     id("org.jetbrains.compose")
 }
 
@@ -14,23 +12,6 @@ repositories {
     google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-}
-
-kotlin {
-    jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-        }
-        withJava()
-    }
-    sourceSets {
-        val jvmMain by getting {
-            dependencies {
-                implementation(compose.desktop.currentOs)
-            }
-        }
-        val jvmTest by getting
-    }
 }
 
 compose.desktop {
@@ -45,6 +26,7 @@ compose.desktop {
 }
 
 dependencies {
-    commonMainImplementation("com.drewnoakes:metadata-extractor:2.18.0")
+    implementation(compose.desktop.currentOs)
+    implementation("com.drewnoakes:metadata-extractor:2.18.0")
     // implementation("com.drewnoakes:metadata-extractor:2.18.0")
 }
