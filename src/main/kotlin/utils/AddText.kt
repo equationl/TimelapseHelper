@@ -25,22 +25,22 @@ object AddText {
     ): Result<List<String>> {
         val failFileList = mutableListOf<String>()
 
-        onProgress("¼ì²é²ÎÊı")
+        onProgress("æ£€æŸ¥å‚æ•°")
         val checkValueResult = withContext(Dispatchers.IO) {
             checkValue(outputPath, textColor, textSize, dateFormat, isUsingSourcePath, outputQualityText)
         }
 
         if (checkValueResult.isFailure) return Result.failure(checkValueResult.exceptionOrNull()?: AddTextException())
 
-        onProgress("¿ªÊ¼´¦Àí")
+        onProgress("å¼€å§‹å¤„ç†")
 
         withContext(Dispatchers.IO) {
             fileList.forEachIndexed { index, file ->
-                onProgress("ÕıÔÚ´¦ÀíµÚ ${index+1} ÕÅÍ¼Æ¬")
+                onProgress("æ­£åœ¨å¤„ç†ç¬¬ ${index+1} å¼ å›¾ç‰‡")
                 val result = addWatermark(file, outputPath, isUsingSourcePath, textPos, textColor, textSize, dateFormat, timeZone, outputQualityText)
                 if (result.isFailure) {
                     failFileList.add("$file : ${result.exceptionOrNull()}")
-                    onProgress("µÚ ${index+1} ÕÅ´¦ÀíÊ§°Ü£º${result.exceptionOrNull()}")
+                    onProgress("ç¬¬ ${index+1} å¼ å¤„ç†å¤±è´¥ï¼š${result.exceptionOrNull()}")
                     result.exceptionOrNull()?.printStackTrace()
                 }
             }
@@ -61,9 +61,9 @@ private fun addWatermark(
     timeZone: String,
     outputQualityText: String
 ): Result<File> {
-    val date = getDateFromExif(file, timeZone) ?: return Result.failure(AddTextException("»ñÈ¡Ê±¼ä´ÁÊ§°Ü£¡"))
+    val date = getDateFromExif(file, timeZone) ?: return Result.failure(AddTextException("è·å–æ—¶é—´æˆ³å¤±è´¥ï¼"))
 
-    val dateString = getDateString(date, dateFormat) ?: return Result.failure(AddTextException("×ª»»Ê±¼äÊ§°Ü£¡"))
+    val dateString = getDateString(date, dateFormat) ?: return Result.failure(AddTextException("è½¬æ¢æ—¶é—´å¤±è´¥ï¼"))
 
     val saveFile = if (isUsingSourcePath) file.getUniqueFile() else File(outputPath).getUniqueFile(file)
 
@@ -79,16 +79,16 @@ private fun addTextToJpg(
     text: String,
     outputQualityText: String
 ): Result<File> {
-    val color = textColor.toAwtColor ?: return Result.failure(AddTextException("Ë®Ó¡ÎÄ×ÖÑÕÉ«´íÎó"))
+    val color = textColor.toAwtColor ?: return Result.failure(AddTextException("æ°´å°æ–‡å­—é¢œè‰²é”™è¯¯"))
     val size = try {
         textSize.toInt()
     } catch (tr: Throwable) {
-        return Result.failure(AddTextException("Ë®Ó¡ÎÄ×Ö³ß´ç´íÎó"))
+        return Result.failure(AddTextException("æ°´å°æ–‡å­—å°ºå¯¸é”™è¯¯"))
     }
     val outputQuality = try {
         outputQualityText.toFloat()
     } catch (tr: Throwable) {
-        return Result.failure(AddTextException("Ñ¹ËõÖÊÁ¿´íÎó"))
+        return Result.failure(AddTextException("å‹ç¼©è´¨é‡é”™è¯¯"))
     }
 
     return try {
@@ -151,29 +151,29 @@ private fun checkValue(
     if (!isUsingSourcePath) {
         val outFile = File(outputPath)
         if (!outFile.isDirectory || !outFile.isAbsolute) {
-            return Result.failure(AddTextException("²ÎÊı´íÎó£ºÊä³öÂ·¾¶²»¿ÉÓÃ"))
+            return Result.failure(AddTextException("å‚æ•°é”™è¯¯ï¼šè¾“å‡ºè·¯å¾„ä¸å¯ç”¨"))
         }
     }
 
     try {
-        textColor.toAwtColor ?: return Result.failure(AddTextException("²ÎÊı´íÎó£ºË®Ó¡ÎÄ×ÖÑÕÉ«´íÎó"))
+        textColor.toAwtColor ?: return Result.failure(AddTextException("å‚æ•°é”™è¯¯ï¼šæ°´å°æ–‡å­—é¢œè‰²é”™è¯¯"))
     } catch (tr: Throwable) {
         tr.printStackTrace()
-        return Result.failure(AddTextException("²ÎÊı´íÎó£ºË®Ó¡ÎÄ×ÖÑÕÉ«´íÎó"))
+        return Result.failure(AddTextException("å‚æ•°é”™è¯¯ï¼šæ°´å°æ–‡å­—é¢œè‰²é”™è¯¯"))
     }
 
     try {
         textSize.toInt()
     } catch (tr: Throwable) {
         tr.printStackTrace()
-        return Result.failure(AddTextException("²ÎÊı´íÎó£ºË®Ó¡ÎÄ×Ö³ß´ç´íÎó"))
+        return Result.failure(AddTextException("å‚æ•°é”™è¯¯ï¼šæ°´å°æ–‡å­—å°ºå¯¸é”™è¯¯"))
     }
 
     try {
         outputQualityText.toFloat()
     } catch (tr: Throwable) {
         tr.printStackTrace()
-        return Result.failure(AddTextException("²ÎÊı´íÎó£ºµ¼³öÖÊÁ¿´íÎó"))
+        return Result.failure(AddTextException("å‚æ•°é”™è¯¯ï¼šå¯¼å‡ºè´¨é‡é”™è¯¯"))
     }
 
     try {
@@ -181,7 +181,7 @@ private fun checkValue(
         simpleDateFormat.format(Date())
     } catch (tr: Throwable) {
         tr.printStackTrace()
-        return Result.failure(AddTextException("²ÎÊı´íÎó£ºË®Ó¡ÈÕÆÚ¸ñÊ½´íÎó"))
+        return Result.failure(AddTextException("å‚æ•°é”™è¯¯ï¼šæ°´å°æ—¥æœŸæ ¼å¼é”™è¯¯"))
     }
 
 
