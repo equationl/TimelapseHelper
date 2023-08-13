@@ -28,5 +28,6 @@ compose.desktop {
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation("com.drewnoakes:metadata-extractor:2.18.0")
+    implementation("org.zeroturnaround:zt-exec:1.12")
     // implementation("com.drewnoakes:metadata-extractor:2.18.0")
 }

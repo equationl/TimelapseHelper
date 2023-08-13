@@ -1,5 +1,6 @@
 package view
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,7 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.zeroturnaround.exec.InvalidExitValueException
+import org.zeroturnaround.exec.ProcessExecutor
 import ui.BackgroundColor
 import ui.CardColor
 import ui.CardSize
@@ -111,7 +115,10 @@ fun MainPager(window: ComposeWindow) {
                         )
                     }
                 },
-                enabled = fileList.isNotEmpty()
+                enabled = fileList.isNotEmpty(),
+                onDialogMsg = {
+                    dialogText = it
+                }
             )
 
         }
@@ -136,6 +143,7 @@ fun MainPager(window: ComposeWindow) {
 
 @Composable
 fun ControlContent(
+    enabled: Boolean,
     onStart: (
         outputPath: String,
         isUsingSourcePath: Boolean,
@@ -146,10 +154,16 @@ fun ControlContent(
         timeZone: String,
         outputQualityText: String,
     ) -> Unit,
-    enabled: Boolean
+    onDialogMsg: (msg: String) -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     var outputPath by remember { mutableStateOf("原路径") }
+    var ffmpegPath by remember { mutableStateOf("跟随系统") }
     var isUsingSourcePath by remember { mutableStateOf(true) }
+    var isUsingSystemFFmpegPath by remember { mutableStateOf(true) }
+    var isGenerateVideo by remember { mutableStateOf(false) }
+    var isAddTimeText by remember { mutableStateOf(true) }
     var textPos by remember { mutableStateOf(TextPos.LEFT_BOTTOM) }
     val textColorFilter = remember { FilterColorHex(defaultValue = TextFieldValue("#FFCCCCCC")) }
     val textSizeFilter = remember { FilterNumber(minValue = 1.0, decimalNumber = 0, defaultValue = TextFieldValue("80")) }
@@ -158,15 +172,16 @@ fun ControlContent(
     val outputQualityTextFilter = remember { FilterNumber(minValue = 0.0, maxValue = 1.0, defaultValue = TextFieldValue("0.7")) }
 
     Card(
-        modifier = Modifier.size(CardSize).padding(16.dp),
+        modifier = Modifier.size(CardSize).padding(16.dp).verticalScroll(rememberScrollState()),
         shape = RoundedCornerShape(8.dp),
         elevation = 4.dp,
         backgroundColor = CardColor
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            // horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -203,99 +218,217 @@ fun ControlContent(
             }
 
             Row(
-                modifier = Modifier.padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("导出图像质量（0.0-1.0）：")
-                OutlinedTextField(
-                    value = outputQualityTextFilter.getInputValue(),
-                    onValueChange = outputQualityTextFilter.onValueChange(),
-                    modifier = Modifier.width(CardSize.width / 4)
+                Checkbox(
+                    checked = isAddTimeText,
+                    onCheckedChange = {
+                        isAddTimeText = it
+                    }
                 )
+
+                Text(
+                    "添加时间水印",
+                    style = MaterialTheme.typography.h5,
+                    color = MaterialTheme.colors.primary,
+                    modifier = Modifier.clickable {
+                        isAddTimeText = !isAddTimeText
+                    }
+                )
+            }
+
+            AnimatedVisibility(isAddTimeText) {
+                Column {
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("导出图像质量（0.0-1.0）：")
+                        OutlinedTextField(
+                            value = outputQualityTextFilter.getInputValue(),
+                            onValueChange = outputQualityTextFilter.onValueChange(),
+                            modifier = Modifier.width(CardSize.width / 4)
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 18.dp)
+                    ) {
+                        Text("水印位置：")
+
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(textPos == TextPos.LEFT_TOP, { textPos = TextPos.LEFT_TOP })
+                                Text("左上角")
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(textPos == TextPos.LEFT_BOTTOM, { textPos = TextPos.LEFT_BOTTOM })
+                                Text("左下角")
+                            }
+                        }
+
+                        Column {
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(textPos == TextPos.RIGHT_TOP, { textPos = TextPos.RIGHT_TOP })
+                                Text("右上角")
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(textPos == TextPos.RIGHT_BOTTOM, { textPos = TextPos.RIGHT_BOTTOM })
+                                Text("右下角")
+                            }
+
+                        }
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("水印设置：")
+                        Column {
+                            OutlinedTextField(
+                                value = textColorFilter.getInputValue(),
+                                onValueChange = textColorFilter.onValueChange(),
+                                label = {
+                                    Text("文字颜色")
+                                }
+                            )
+                            OutlinedTextField(
+                                value = textSizeFilter.getInputValue(),
+                                onValueChange = textSizeFilter.onValueChange(),
+                                label = {
+                                    Text("文字尺寸")
+                                }
+                            )
+                            OutlinedTextField(
+                                value = dateFormat,
+                                onValueChange = { dateFormat = it },
+                                label = {
+                                    Text("日期格式")
+                                }
+                            )
+                            OutlinedTextField(
+                                value = timeZoneFilter.getInputValue(),
+                                onValueChange = timeZoneFilter.onValueChange(),
+                                label = {
+                                    Text("时区")
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 18.dp)
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("水印位置：")
+                Checkbox(
+                    checked = isGenerateVideo,
+                    onCheckedChange = {
+                        isGenerateVideo = it
+                    }
+                )
 
+                Text(
+                    "合成视频",
+                    style = MaterialTheme.typography.h5,
+                    color = MaterialTheme.colors.primary,
+                    modifier = Modifier.clickable {
+                        isGenerateVideo = !isGenerateVideo
+                    }
+                )
+            }
+
+            AnimatedVisibility(isGenerateVideo) {
                 Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.LEFT_TOP, { textPos = TextPos.LEFT_TOP })
-                        Text("左上角")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("FFmpeg 路径：")
+                        OutlinedTextField(
+                            value = ffmpegPath,
+                            onValueChange = { ffmpegPath = it },
+                            modifier = Modifier.width(CardSize.width / 3),
+                            enabled = !isUsingSystemFFmpegPath
+                        )
+                        Button(
+                            onClick = {
+                                showFileSelector(
+                                    isMultiSelection = false,
+                                    selectionMode = JFileChooser.FILES_ONLY,
+                                    selectionFileFilter = null
+                                ) {
+                                    ffmpegPath = it[0].absolutePath
+                                }
+                            },
+                            modifier = Modifier.padding(start = 8.dp),
+                            enabled = !isUsingSystemFFmpegPath
+                        ) {
+                            Text("选择")
+                        }
+                        Checkbox(
+                            checked = isUsingSystemFFmpegPath,
+                            onCheckedChange = {
+                                isUsingSystemFFmpegPath = it
+                                ffmpegPath = if (it) "跟随系统" else ""
+                            }
+                        )
+                        Text("使用系统默认", fontSize = 12.sp)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.LEFT_BOTTOM, { textPos = TextPos.LEFT_BOTTOM })
-                        Text("左下角")
-                    }
-                }
 
-                Column {
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.RIGHT_TOP, { textPos = TextPos.RIGHT_TOP })
-                        Text("右上角")
+                    Button(
+                        onClick = {
+                            onDialogMsg("正在测试 FFmpeg 是否可用……")
+                            coroutineScope.launch(Dispatchers.IO) {
+                                try {
+                                    val cmd = if (isUsingSystemFFmpegPath) "ffmpeg" else ffmpegPath
+                                    val output = ProcessExecutor().command(cmd, "-version")
+                                        .readOutput(true)
+                                        .exitValues(0)
+                                        .execute()
+                                        .outputUTF8()
+                                    onDialogMsg("FFmpeg 正常！\n\n $output")
+                                } catch (e: InvalidExitValueException) {
+                                    println("Process exited with ${e.exitValue}")
+                                    val output = e.result.outputUTF8()
+                                    onDialogMsg("FFmpeg 不可用！\n\n $output")
+                                } catch (tr: Throwable) {
+                                    println("Process exited with ${tr.stackTraceToString()}")
+                                    onDialogMsg("FFmpeg 不可用！\n\n ${tr.stackTraceToString()}")
+                                }
+                            }
+                                  },
+                        enabled = ffmpegPath.isNotBlank()) {
+                        Text("测试 FFmpeg")
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(textPos == TextPos.RIGHT_BOTTOM, { textPos = TextPos.RIGHT_BOTTOM })
-                        Text("右下角")
-                    }
-
                 }
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("水印设置：")
-                Column {
-                    OutlinedTextField(
-                        value = textColorFilter.getInputValue(),
-                        onValueChange = textColorFilter.onValueChange(),
-                        label = {
-                            Text("文字颜色")
-                        }
-                    )
-                    OutlinedTextField(
-                        value = textSizeFilter.getInputValue(),
-                        onValueChange = textSizeFilter.onValueChange(),
-                        label = {
-                            Text("文字尺寸")
-                        }
-                    )
-                    OutlinedTextField(
-                        value = dateFormat,
-                        onValueChange = { dateFormat = it },
-                        label = {
-                            Text("日期格式")
-                        }
-                    )
-                    OutlinedTextField(
-                        value = timeZoneFilter.getInputValue(),
-                        onValueChange = timeZoneFilter.onValueChange(),
-                        label = {
-                            Text("时区")
-                        }
-                    )
-                }
-            }
-
-            Button(
-                onClick = {
-                    onStart(
-                        outputPath,
-                        isUsingSourcePath,
-                        textPos,
-                        textColorFilter.getInputValue().text,
-                        textSizeFilter.getInputValue().text,
-                        dateFormat,
-                        timeZoneFilter.getInputValue().text,
-                        outputQualityTextFilter.getInputValue().text
-                    )
-                          },
-                modifier = Modifier.padding(top = 8.dp),
-                enabled = enabled
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text("开始")
+                Button(
+                    onClick = {
+                        onStart(
+                            outputPath,
+                            isUsingSourcePath,
+                            textPos,
+                            textColorFilter.getInputValue().text,
+                            textSizeFilter.getInputValue().text,
+                            dateFormat,
+                            timeZoneFilter.getInputValue().text,
+                            outputQualityTextFilter.getInputValue().text
+                        )
+                    },
+                    modifier = Modifier.padding(top = 8.dp),
+                    enabled = enabled && (isAddTimeText || isGenerateVideo)
+                ) {
+                    Text("开始")
+                }
             }
         }
     }
