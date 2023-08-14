@@ -1,17 +1,17 @@
-# ¼ò½é
-ÕâÊÇÒ»¿îÊ¹ÓÃ Compose ÊµÏÖµÄ¿ìËÙÎªÕÕÆ¬Ìí¼ÓÊ±¼äË®Ó¡µÄ×ÀÃæ¶ËÓ¦ÓÃ¡£
+# ç®€ä»‹
+è¿™æ˜¯ä¸€æ¬¾ä½¿ç”¨ Compose å®ç°çš„å¿«é€Ÿä¸ºç…§ç‰‡æ·»åŠ æ—¶é—´æ°´å°çš„æ¡Œé¢ç«¯åº”ç”¨ã€‚
 
-Ê¹ÓÃ Compose-multiplatform £¨Ô­ Compose-jb£©ÊµÏÖ£¬ËùÒÔÖ§³ÖËùÓĞ×ÀÃæ¶Ë£¨Windows¡¢macOS¡¢Linux£©¡£
+ä½¿ç”¨ Compose-multiplatform ï¼ˆåŸ Compose-jbï¼‰å®ç°ï¼Œæ‰€ä»¥æ”¯æŒæ‰€æœ‰æ¡Œé¢ç«¯ï¼ˆWindowsã€macOSã€Linuxï¼‰ã€‚
 
-ÊÊºÏÓÃÓÚÎªÖÆ×÷ÑÓÊ±ÊÓÆµ¶øÅÄÉãµÄÕÕÆ¬Ìí¼ÓÊ±¼äĞÅÏ¢¡£
+é€‚åˆç”¨äºä¸ºåˆ¶ä½œå»¶æ—¶è§†é¢‘è€Œæ‹æ‘„çš„ç…§ç‰‡æ·»åŠ æ—¶é—´ä¿¡æ¯ã€‚
 
-Í¨¹ı¶ÁÈ¡ÕÕÆ¬ EXif ÖĞµÄÅÄÉãÊ±¼äĞÅÏ¢À´ÎªÄúµÄÕÕÆ¬Ìí¼ÓÊ±¼äË®Ó¡¡£
+é€šè¿‡è¯»å–ç…§ç‰‡ EXif ä¸­çš„æ‹æ‘„æ—¶é—´ä¿¡æ¯æ¥ä¸ºæ‚¨çš„ç…§ç‰‡æ·»åŠ æ—¶é—´æ°´å°ã€‚
 
-Ö§³Ö×Ô¶¨ÒåË®Ó¡ÎÄ×Ö¸ñÊ½¡¢×Ô¶¨ÒåË®Ó¡Î»ÖÃ¡¢×Ô¶¨ÒåÎÄ×Ö´óĞ¡¡¢×Ô¶¨ÒåÎÄ×ÖÑÕÉ«µÈ¡£
+æ”¯æŒè‡ªå®šä¹‰æ°´å°æ–‡å­—æ ¼å¼ã€è‡ªå®šä¹‰æ°´å°ä½ç½®ã€è‡ªå®šä¹‰æ–‡å­—å¤§å°ã€è‡ªå®šä¹‰æ–‡å­—é¢œè‰²ç­‰ã€‚
 
-Ö§³ÖÒ»¼üÍÏ×§ÎÄ¼ş¼Ğ»òÎÄ¼şÅúÁ¿Ìí¼Ó¡£
+æ”¯æŒä¸€é”®æ‹–æ‹½æ–‡ä»¶å¤¹æˆ–æ–‡ä»¶æ‰¹é‡æ·»åŠ ã€‚
 
-# ½ØÍ¼
+# æˆªå›¾
 ![1](./docs/1.png)
 
 ![2](./docs/2.png)
@@ -19,13 +19,13 @@
 ![3](./docs/3.png)
 
 
-# ÊµÏÖË¼Â·ºÍ¼¼ÊõÏ¸½Ú
-1. [Compose For Desktop Êµ¼ù£ºÊ¹ÓÃ Compose-jb ×öÒ»¸öÊ±¼äË®Ó¡ÖúÊÖ](https://juejin.cn/post/7165387863129849864)
-2. [Îª Compose µÄ TextField Ìí¼ÓÀàËÆ EditText inputType µÄÊäÈë¹ıÂË](https://juejin.cn/post/7214314627521282085)
+# å®ç°æ€è·¯å’ŒæŠ€æœ¯ç»†èŠ‚
+1. [Compose For Desktop å®è·µï¼šä½¿ç”¨ Compose-jb åšä¸€ä¸ªæ—¶é—´æ°´å°åŠ©æ‰‹](https://juejin.cn/post/7165387863129849864)
+2. [ä¸º Compose çš„ TextField æ·»åŠ ç±»ä¼¼ EditText inputType çš„è¾“å…¥è¿‡æ»¤](https://juejin.cn/post/7214314627521282085)
 
-# ²Î¿¼×ÊÁÏ
-1. [Ê¹ÓÃComposeDesktop¿ª·¢Ò»¿î×ÀÃæ¶Ë¶à¹¦ÄÜAPK¹¤¾ß](https://juejin.cn/post/7122645579439538183)
+# å‚è€ƒèµ„æ–™
+1. [ä½¿ç”¨ComposeDesktopå¼€å‘ä¸€æ¬¾æ¡Œé¢ç«¯å¤šåŠŸèƒ½APKå·¥å…·](https://juejin.cn/post/7122645579439538183)
 2. [From Swing to Jetpack Compose Desktop #2](https://dev.to/tkuenneth/from-swing-to-jetpack-compose-desktop-2-4a4h)
-3. [JavaÖĞÍ¼Æ¬Ìí¼ÓË®Ó¡£¨ÎÄ×Ö+Í¼Æ¬Ë®Ó¡£©](https://juejin.cn/post/6982192057209077791)
+3. [Javaä¸­å›¾ç‰‡æ·»åŠ æ°´å°ï¼ˆæ–‡å­—+å›¾ç‰‡æ°´å°ï¼‰](https://juejin.cn/post/6982192057209077791)
 4. [metadata-extractor](https://github.com/drewnoakes/metadata-extractor)
 5. [Image and in-app icons manipulations](https://github.com/JetBrains/compose-jb/tree/master/tutorials/Image_And_Icons_Manipulations)

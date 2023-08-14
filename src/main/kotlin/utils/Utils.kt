@@ -38,14 +38,14 @@ fun addTextWaterMark(
     outputQuality: Float
 ) {
     try {
-        val width: Int = targetImg.width //Í¼Æ¬¿í
-        val height: Int = targetImg.height //Í¼Æ¬¸ß
+        val width: Int = targetImg.width //Í¼Æ¬ï¿½ï¿½
+        val height: Int = targetImg.height //Í¼Æ¬ï¿½ï¿½
 
         val graphics: Graphics2D = targetImg.createGraphics()
-        graphics.color = textColor //Ë®Ó¡ÑÕÉ«
+        graphics.color = textColor //Ë®Ó¡ï¿½ï¿½É«
         graphics.font = Font(null, Font.PLAIN, fontSize)
 
-        // Ë®Ó¡×ø±êÎ»ÖÃ
+        // Ë®Ó¡ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
         val textWidth = graphics.fontMetrics.stringWidth(text)
         val textHeight = graphics.fontMetrics.height
         val point = textPos.getPoint(width, height, textWidth, textHeight)
@@ -54,7 +54,7 @@ fun addTextWaterMark(
 
         graphics.drawString(text, x, y)
 
-        // Ð´ÈëÊä³öÁ÷
+        // Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         saveImage(targetImg, outPath, outputQuality)
         graphics.dispose()
     } catch (e: Exception) {
