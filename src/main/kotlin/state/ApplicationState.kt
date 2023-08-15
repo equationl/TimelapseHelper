@@ -75,6 +75,8 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 result.fold(
                     { addTextResult ->
                         if (controlState.isGenerateVideo) { // 如果勾选了生成视频，则需要重新创建文件列表
+                            addTextResult.failFileList.map { failText += "$it\n" }
+
                             videoFileList = Picture2Video.orderFileListByTime(addTextResult.successFile)
                         } else {
                             isRunning = false
@@ -105,10 +107,10 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
 
                         result.fold(
                             onSuccess = {
-                                changeDialogText("$it \n $failText")
+                                changeDialogText("$failText \n $it")
                                         },
                             onFailure = {
-                                changeDialogText("处理失败：\n生成视频：${it.message}\n$failText")
+                                changeDialogText("$failText \n 处理失败：\n ${it.message}\n")
                             }
                         )
                     }

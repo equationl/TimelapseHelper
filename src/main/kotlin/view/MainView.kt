@@ -1,6 +1,8 @@
 package view
 
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -54,12 +56,21 @@ fun MainPager(applicationState: ApplicationState) {
             title = if (applicationState.isRunning) "处理中" else "处理完成",
             resizable = false
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(8.dp).verticalScroll(applicationState.dialogScrollState),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(applicationState.dialogText)
+            Box {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(8.dp).verticalScroll(applicationState.dialogScrollState),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(applicationState.dialogText)
+                }
+
+                VerticalScrollbar(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(applicationState.dialogScrollState)
+                )
             }
         }
     }

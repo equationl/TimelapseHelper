@@ -1,8 +1,6 @@
 package view
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -92,36 +90,45 @@ fun ImageContent(
                     }
                 }
 
-                LazyColumn(
-                    state = state.lazyListState,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    itemsIndexed(applicationState.fileList) { index: Int, item: File ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().then(
-                                if (state.showImageIndex == index) Modifier.background(MaterialTheme.colors.secondary)
-                                else Modifier
-                            ),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                item.absolutePath,
-                                modifier = Modifier.clickable {
-                                    state.showImageIndex = index
-                                }.weight(0.9f),
-                                color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
-                            )
+                Box {
+                    LazyColumn(
+                        state = state.lazyListState,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        itemsIndexed(applicationState.fileList) { index: Int, item: File ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().then(
+                                    if (state.showImageIndex == index) Modifier.background(MaterialTheme.colors.secondary)
+                                    else Modifier
+                                ),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    item.absolutePath,
+                                    modifier = Modifier.clickable {
+                                        state.showImageIndex = index
+                                    }.weight(0.9f),
+                                    color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
+                                )
 
-                            Icon(
-                                imageVector = Icons.Rounded.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.clickable {
-                                    applicationState.onDelImg(index)
-                                }.weight(0.1f)
-                            )
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = null,
+                                    modifier = Modifier.clickable {
+                                        applicationState.onDelImg(index)
+                                    }.weight(0.1f)
+                                )
+                            }
                         }
                     }
+
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(
+                            scrollState = state.lazyListState
+                        )
+                    )
                 }
             }
         }
