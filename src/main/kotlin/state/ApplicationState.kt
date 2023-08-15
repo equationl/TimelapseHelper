@@ -32,6 +32,8 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     var dialogText by mutableStateOf("")
     var isRunning by mutableStateOf(false)
 
+    var windowShowPicture: File? by mutableStateOf(null)
+
     fun onClickImgChoose() {
         showFileSelector(
             onFileSelected = {
@@ -42,6 +44,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
 
     fun onDelImg(index: Int) {
         if (index < 0) {
+            imgPreviewState.showImageIndex = 0
             fileList.clear()
         } else {
             fileList.removeAt(index)
@@ -149,6 +152,10 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 dialogScrollState.scrollTo(dialogScrollState.maxValue)
             }
         }
+    }
+
+    fun showPicture(picture: File?) {
+        windowShowPicture = picture
     }
 
     private fun minImgIndex() {

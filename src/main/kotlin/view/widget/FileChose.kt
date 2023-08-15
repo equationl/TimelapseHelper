@@ -11,13 +11,13 @@ import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.filechooser.FileNameExtensionFilter
 
-val legalSuffixList: Array<String> = arrayOf("jpg", "jpeg")
+val legalSuffixList: Array<String> = arrayOf("jpg", "jpeg", "png")
 
 fun showFileSelector(
-    suffixList: Array<String> = arrayOf("jpg", "jpeg"),
+    suffixList: Array<String> = legalSuffixList,
     isMultiSelection: Boolean = true,
     selectionMode: Int = JFileChooser.FILES_AND_DIRECTORIES, // 可以选择目录和文件
-    selectionFileFilter: FileNameExtensionFilter? = FileNameExtensionFilter("图片(.jpg .jpeg)", *suffixList), // 文件过滤
+    selectionFileFilter: FileNameExtensionFilter? = FileNameExtensionFilter("图片(${legalSuffixList.contentToString()})", *suffixList), // 文件过滤
     onFileSelected: (Array<File>) -> Unit,
     ) {
     JFileChooser().apply {

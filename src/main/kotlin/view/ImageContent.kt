@@ -65,28 +65,37 @@ fun ImageContent(
                     bitmap = applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)].inputStream().buffered()
                         .use(::loadImageBitmap),
                     contentDescription = null,
-                    modifier = Modifier.height(CardSize.height / 2).fillMaxWidth(),
+                    modifier = Modifier
+                        .height(CardSize.height / 2)
+                        .fillMaxWidth()
+                        .clickable {
+                            applicationState.showPicture(applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)])
+                        },
                     contentScale = ContentScale.Fit
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = {
+                        applicationState.onClickImgChoose()
+                    }) {
+                        Text("添加")
+                    }
+
+                    Text("${state.showImageIndex + 1}/${applicationState.fileList.size}")
+
+                    Button(onClick = { applicationState.onDelImg(-1) }) {
+                        Text("清空")
+                    }
+                }
 
                 LazyColumn(
                     state = state.lazyListState,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    item {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                            Button(onClick = {
-                                applicationState.onClickImgChoose()
-                            }) {
-                                Text("添加")
-                            }
-                            Button(onClick = { applicationState.onDelImg(-1) }) {
-                                Text("清空")
-                            }
-                        }
-
-                    }
-
                     itemsIndexed(applicationState.fileList) { index: Int, item: File ->
                         Row(
                             modifier = Modifier.fillMaxWidth().then(
