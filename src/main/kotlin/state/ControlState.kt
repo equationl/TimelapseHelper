@@ -22,4 +22,6 @@ class ControlState {
     var dateFormat by mutableStateOf("yyyy.MM.dd HH:mm:ss")
     val timeZoneFilter = FilterGMT(TextFieldValue("GMT+8:00"))
     val outputQualityTextFilter = FilterNumber(minValue = 0.0, maxValue = 1.0, defaultValue = TextFieldValue("0.7"))
+    val pictureKeepTime = FilterNumber(minValue = 0.0, maxValue = Double.MAX_VALUE, decimalNumber = Int.MAX_VALUE, defaultValue = TextFieldValue("1"))
+    val videoRate = FilterNumber(minValue = 1.0, maxValue = Double.MAX_VALUE, decimalNumber = 0, defaultValue = TextFieldValue("25"))
 }

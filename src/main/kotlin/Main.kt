@@ -1,3 +1,4 @@
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -8,7 +9,7 @@ import java.awt.Dimension
 import kotlin.math.roundToInt
 
 fun main() = application {
-    val applicationState = rememberApplicationState(rememberCoroutineScope())
+    val applicationState = rememberApplicationState(rememberCoroutineScope(), rememberScrollState())
 
     Window(
         title = "时间水印助手",

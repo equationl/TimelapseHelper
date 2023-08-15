@@ -239,7 +239,7 @@ fun ControlContent(
 
                     Button(
                         onClick = {
-                            applicationState.dialogText = "正在测试 FFmpeg 是否可用……"
+                            applicationState.changeDialogText("正在测试 FFmpeg 是否可用……")
                             applicationState.scope.launch(Dispatchers.IO) {
                                 try {
                                     val cmd = if (state.isUsingSystemFFmpegPath) "ffmpeg" else state.ffmpegPath
@@ -248,19 +248,43 @@ fun ControlContent(
                                         .exitValues(0)
                                         .execute()
                                         .outputUTF8()
-                                    applicationState.dialogText = "FFmpeg 正常！\n\n $output"
+                                    applicationState.changeDialogText("FFmpeg 正常！\n\n $output")
                                 } catch (e: InvalidExitValueException) {
                                     println("Process exited with ${e.exitValue}")
                                     val output = e.result.outputUTF8()
-                                    applicationState.dialogText = "FFmpeg 不可用！\n\n $output"
+                                    applicationState.changeDialogText("FFmpeg 不可用！\n\n $output")
                                 } catch (tr: Throwable) {
                                     println("Process exited with ${tr.stackTraceToString()}")
-                                    applicationState.dialogText = "FFmpeg 不可用！\n\n ${tr.stackTraceToString()}"
+                                    applicationState.changeDialogText("FFmpeg 不可用！\n\n ${tr.stackTraceToString()}")
                                 }
                             }
                         },
                         enabled = state.ffmpegPath.isNotBlank()) {
                         Text("测试 FFmpeg")
+                    }
+
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("每张图片持续时间（倒数）：")
+                        OutlinedTextField(
+                            value = state.pictureKeepTime.getInputValue(),
+                            onValueChange = state.pictureKeepTime.onValueChange(),
+                            modifier = Modifier.width(CardSize.width / 4)
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("视频帧率：")
+                        OutlinedTextField(
+                            value = state.videoRate.getInputValue(),
+                            onValueChange = state.videoRate.onValueChange(),
+                            modifier = Modifier.width(CardSize.width / 4)
+                        )
                     }
                 }
             }

@@ -1,7 +1,6 @@
 package view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -56,7 +55,7 @@ fun MainPager(applicationState: ApplicationState) {
             resizable = false
         ) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(8.dp).verticalScroll(rememberScrollState()),
+                modifier = Modifier.fillMaxSize().padding(8.dp).verticalScroll(applicationState.dialogScrollState),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

@@ -22,8 +22,9 @@ object AddText {
         timeZone: String,
         outputQualityText: String,
         onProgress: (msg: String) -> Unit
-    ): Result<List<String>> {
+    ): Result<AddTextResult> {
         val failFileList = mutableListOf<String>()
+        val successFileList = mutableListOf<FileWithDate>()
 
         onProgress("检查参数")
         val checkValueResult = withContext(Dispatchers.IO) {
@@ -43,10 +44,13 @@ object AddText {
                     onProgress("第 ${index+1} 张处理失败：${result.exceptionOrNull()}")
                     result.exceptionOrNull()?.printStackTrace()
                 }
+                else {
+                    successFileList.add(result.getOrNull()!!)
+                }
             }
         }
 
-        return Result.success(failFileList)
+        return Result.success(AddTextResult(failFileList, successFileList))
     }
 }
 
@@ -60,14 +64,21 @@ private fun addWatermark(
     dateFormat: String,
     timeZone: String,
     outputQualityText: String
-): Result<File> {
+): Result<FileWithDate> {
     val date = getDateFromExif(file, timeZone) ?: return Result.failure(AddTextException("获取时间戳失败！"))
 
     val dateString = getDateString(date, dateFormat) ?: return Result.failure(AddTextException("转换时间失败！"))
 
     val saveFile = if (isUsingSourcePath) file.getUniqueFile() else File(outputPath).getUniqueFile(file)
 
-    return addTextToJpg(file, saveFile, textColor, textSize, textPos, dateString, outputQualityText)
+    addTextToJpg(file, saveFile, textColor, textSize, textPos, dateString, outputQualityText).fold(
+        onSuccess = {
+            return Result.success(FileWithDate(it, date.time))
+        },
+        onFailure = {
+            return Result.failure(it)
+        }
+    )
 }
 
 private fun addTextToJpg(
@@ -187,5 +198,15 @@ private fun checkValue(
 
     return Result.success(true)
 }
+
+data class AddTextResult(
+    val failFileList: List<String>,
+    val successFile: List<FileWithDate>,
+)
+
+data class FileWithDate(
+    val file: File,
+    val date: Long
+)
 
 class AddTextException(msg: String = "No Msg"): Exception(msg)
