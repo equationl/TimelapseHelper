@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import org.zeroturnaround.exec.InvalidExitValueException
 import org.zeroturnaround.exec.ProcessExecutor
 import state.ApplicationState
+import state.ControlState
 import ui.CardColor
 import ui.CardSize
 import utils.TextPos
@@ -203,43 +204,91 @@ fun ControlContent(
 
                 AnimatedVisibility(state.isGenerateVideo) {
                     Column {
+                        Text("FFmpeg 可执行文件来源：")
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.height(IntrinsicSize.Min)
                         ) {
-                            Text("FFmpeg 路径：")
-                            ToolTip("填写或选择已下载的 FFmpeg 可执行文件，在 Windows 上通常为 “ffmpeg.exe” ； 在 Linux 和 MacOs 上通常为 “ffmpeg”") {
-                                OutlinedTextField(
-                                    value = state.ffmpegPath,
-                                    onValueChange = { state.ffmpegPath = it },
-                                    modifier = Modifier.width(CardSize.width / 3),
-                                    enabled = !state.isUsingSystemFFmpegPath
-                                )
-                            }
 
-                            Button(
+                            RadioButton(
+                                selected = state.ffmpegFrom == ControlState.FFmpegFrom.Bundle,
                                 onClick = {
-                                    showFileSelector(
-                                        isMultiSelection = false,
-                                        selectionMode = JFileChooser.FILES_ONLY,
-                                        selectionFileFilter = null
-                                    ) {
-                                        state.ffmpegPath = it[0].absolutePath
-                                    }
-                                },
-                                modifier = Modifier.padding(start = 8.dp),
-                                enabled = !state.isUsingSystemFFmpegPath
-                            ) {
-                                Text("选择")
-                            }
-                            Checkbox(
-                                checked = state.isUsingSystemFFmpegPath,
-                                onCheckedChange = {
-                                    state.isUsingSystemFFmpegPath = it
-                                    state.ffmpegPath = if (it) "跟随系统" else ""
+                                    state.ffmpegFrom = ControlState.FFmpegFrom.Bundle
                                 }
                             )
+
+                            ToolTip("使用软件已打包的 FFmpeg 文件，并非所有系统都支持，如果不可用请切换其他选项使用。") {
+                                Text("使用软件自带", fontSize = 12.sp, modifier = Modifier.clickable {
+                                    state.ffmpegFrom = ControlState.FFmpegFrom.Bundle
+                                })
+                            }
+
+                            Divider(
+                                modifier = Modifier.fillMaxHeight().padding(start = 24.dp).width(1.dp)
+                            )
+
+                            RadioButton(
+                                selected = state.ffmpegFrom == ControlState.FFmpegFrom.System,
+                                onClick = {
+                                    state.ffmpegFrom = ControlState.FFmpegFrom.System
+                                }
+                            )
+
                             ToolTip("使用系统默认表示您已在当前系统 PATH 中添加 ffmpeg 路径， 可直接通过 “ffmpeg” 命令调用") {
-                                Text("使用系统默认", fontSize = 12.sp)
+                                Text("使用系统默认", fontSize = 12.sp, modifier = Modifier.clickable {
+                                    state.ffmpegFrom = ControlState.FFmpegFrom.System
+                                })
+                            }
+
+                            Divider(
+                                modifier = Modifier.fillMaxHeight().padding(start = 24.dp).width(1.dp)
+                            )
+
+                            RadioButton(
+                                selected = state.ffmpegFrom == ControlState.FFmpegFrom.Customize,
+                                onClick = {
+                                    state.ffmpegFrom = ControlState.FFmpegFrom.Customize
+                                }
+                            )
+
+                            ToolTip("自定义 FFmpeg 可执行文件路径") {
+                                Text("自定义", fontSize = 12.sp, modifier = Modifier.clickable {
+                                    state.ffmpegFrom = ControlState.FFmpegFrom.Customize
+                                })
+                            }
+                        }
+
+                        AnimatedVisibility(
+                            visible = state.ffmpegFrom == ControlState.FFmpegFrom.Customize
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("FFmpeg 路径：")
+                                ToolTip("填写或选择已下载的 FFmpeg 可执行文件，在 Windows 上通常为 “ffmpeg.exe” ； 在 Linux 和 MacOs 上通常为 “ffmpeg”") {
+                                    OutlinedTextField(
+                                        value = state.ffmpegPath,
+                                        onValueChange = { state.ffmpegPath = it },
+                                        modifier = Modifier.width(CardSize.width / 3),
+                                    )
+                                }
+
+                                Button(
+                                    onClick = {
+                                        showFileSelector(
+                                            isMultiSelection = false,
+                                            selectionMode = JFileChooser.FILES_ONLY,
+                                            selectionFileFilter = null
+                                        ) {
+                                            state.ffmpegPath = it[0].absolutePath
+                                        }
+                                    },
+                                    modifier = Modifier.padding(start = 8.dp),
+                                ) {
+                                    Text("选择")
+                                }
                             }
                         }
 
@@ -248,7 +297,7 @@ fun ControlContent(
                                 applicationState.changeDialogText("正在测试 FFmpeg 是否可用……")
                                 applicationState.scope.launch(Dispatchers.IO) {
                                     try {
-                                        val cmd = if (state.isUsingSystemFFmpegPath) "ffmpeg" else state.ffmpegPath
+                                        val cmd = state.getFfmpegBinaryPath()
                                         val output = ProcessExecutor().command(cmd, "-version")
                                             .readOutput(true)
                                             .exitValues(0)
@@ -265,7 +314,7 @@ fun ControlContent(
                                     }
                                 }
                             },
-                            enabled = state.ffmpegPath.isNotBlank()) {
+                        ) {
                             Text("测试 FFmpeg")
                         }
 
@@ -307,7 +356,7 @@ fun ControlContent(
                             applicationState.onStartProgress()
                         },
                         modifier = Modifier.padding(top = 8.dp),
-                        enabled = applicationState.fileList.isNotEmpty() && (state.isAddTimeText || state.isGenerateVideo)
+                        enabled = applicationState.fileList.isNotEmpty() && state.outputPath.isNotBlank() && (state.isAddTimeText || state.isGenerateVideo)
                     ) {
                         Text("开始")
                     }

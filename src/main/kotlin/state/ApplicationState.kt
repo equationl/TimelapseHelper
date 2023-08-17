@@ -96,7 +96,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 Picture2Video.picture2Video(
                     videoFileList,
                     if (controlState.isUsingSourcePath) File(videoFileList[0].parent) else File(controlState.outputPath),
-                    if (controlState.isUsingSystemFFmpegPath) "ffmpeg" else controlState.ffmpegPath,
+                    controlState.getFfmpegBinaryPath(),
                     controlState.pictureKeepTime.getInputValue().text.toDouble(),
                     controlState.videoRate.getInputValue().text.toInt(),
                     onProgress = {

@@ -43,3 +43,6 @@ bin/
 
 ### Custom ###
 /src/jvmMain/kotlin/test.kt
+/cache/
+/resources/windows/ffmpeg.exe
+/resources/macos/ffmpeg
