@@ -21,14 +21,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import state.ApplicationState
 import ui.CardColor
-import ui.CardSize
 import view.widget.legalSuffixList
 import java.io.File
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ImageContent(
-    applicationState: ApplicationState
+    applicationState: ApplicationState,
+    modifier: Modifier
 ) {
 
     val state = applicationState.imgPreviewState
@@ -38,7 +38,7 @@ fun ImageContent(
         onClick = {
             applicationState.onClickImgChoose()
         },
-        modifier = Modifier.size(CardSize).padding(16.dp),
+        modifier = modifier.padding(16.dp),
         shape = RoundedCornerShape(8.dp),
         elevation = 4.dp,
         backgroundColor = CardColor,
@@ -63,16 +63,15 @@ fun ImageContent(
             ) {
                 Box(
                     modifier = Modifier
-                        .height(CardSize.height / 2)
-                        .fillMaxWidth()
+                        .fillMaxSize()
+                        .weight(1f)
                 ) {
                     Image(
                         bitmap = applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)].inputStream().buffered()
                             .use(::loadImageBitmap),
                         contentDescription = null,
                         modifier = Modifier
-                            .height(CardSize.height / 2)
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .clickable {
                                 applicationState.showPicture(applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)])
                             },
@@ -99,7 +98,7 @@ fun ImageContent(
 
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize().weight(0.15f),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -116,7 +115,11 @@ fun ImageContent(
                     }
                 }
 
-                Box {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                ) {
                     LazyColumn(
                         state = state.lazyListState,
                         modifier = Modifier.fillMaxWidth()

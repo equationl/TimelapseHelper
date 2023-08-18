@@ -17,7 +17,6 @@ import org.zeroturnaround.exec.ProcessExecutor
 import state.ApplicationState
 import state.ControlState
 import ui.CardColor
-import ui.CardSize
 import utils.TextPos
 import view.widget.ToolTip
 import view.widget.showFileSelector
@@ -25,14 +24,15 @@ import javax.swing.JFileChooser
 
 @Composable
 fun ControlContent(
-    applicationState: ApplicationState
+    applicationState: ApplicationState,
+    modifier: Modifier
 ) {
     val state = applicationState.controlState
     val scrollState = rememberScrollState()
 
-    Box {
+    Box(modifier) {
         Card(
-            modifier = Modifier.size(CardSize).padding(16.dp).verticalScroll(scrollState),
+            modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(scrollState),
             shape = RoundedCornerShape(8.dp),
             elevation = 4.dp,
             backgroundColor = CardColor
@@ -44,13 +44,14 @@ fun ControlContent(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("输出路径：")
                     OutlinedTextField(
                         value = state.outputPath,
                         onValueChange = { state.outputPath = it },
-                        modifier = Modifier.width(CardSize.width / 3),
-                        enabled = !state.isUsingSourcePath
+                        enabled = !state.isUsingSourcePath,
+                        modifier = Modifier.fillMaxWidth(0.5f)
                     )
                     Button(
                         onClick = {
@@ -109,7 +110,6 @@ fun ControlContent(
                             OutlinedTextField(
                                 value = state.outputQualityTextFilter.getInputValue(),
                                 onValueChange = state.outputQualityTextFilter.onValueChange(),
-                                modifier = Modifier.width(CardSize.width / 4)
                             )
                         }
 
@@ -271,7 +271,6 @@ fun ControlContent(
                                     OutlinedTextField(
                                         value = state.ffmpegPath,
                                         onValueChange = { state.ffmpegPath = it },
-                                        modifier = Modifier.width(CardSize.width / 3),
                                     )
                                 }
 
@@ -328,7 +327,6 @@ fun ControlContent(
                                 OutlinedTextField(
                                     value = state.pictureKeepTime.getInputValue(),
                                     onValueChange = state.pictureKeepTime.onValueChange(),
-                                    modifier = Modifier.width(CardSize.width / 4)
                                 )
                             }
                         }
@@ -341,7 +339,6 @@ fun ControlContent(
                             OutlinedTextField(
                                 value = state.videoRate.getInputValue(),
                                 onValueChange = state.videoRate.onValueChange(),
-                                modifier = Modifier.width(CardSize.width / 4)
                             )
                         }
                     }

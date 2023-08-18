@@ -43,10 +43,14 @@ fun MainPager(applicationState: ApplicationState) {
             horizontalArrangement = Arrangement.Center
         ) {
             if (applicationState.imageShowModel == ApplicationState.ImgShowModel.List) {
-                ImageContent(applicationState)
+                ImageContent(
+                    applicationState = applicationState,
+                    modifier = Modifier.fillMaxSize().weight(1f)
+                )
 
                 ControlContent(
-                    applicationState = applicationState
+                    applicationState = applicationState,
+                    modifier = Modifier.fillMaxSize().weight(1f)
                 )
             }
             else if (applicationState.imageShowModel == ApplicationState.ImgShowModel.Grid) {
