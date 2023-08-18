@@ -32,6 +32,8 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     var dialogText by mutableStateOf("")
     var isRunning by mutableStateOf(false)
 
+    var imageShowModel by mutableStateOf(ImgShowModel.List)
+
     var windowShowPicture: File? by mutableStateOf(null)
 
     fun onClickImgChoose() {
@@ -186,5 +188,10 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 imgPreviewState.lazyListState.animateScrollToItem(imgPreviewState.showImageIndex)
             }
         }
+    }
+
+    enum class ImgShowModel {
+        List,
+        Grid
     }
 }

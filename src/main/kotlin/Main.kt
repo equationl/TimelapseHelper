@@ -2,6 +2,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.window.*
+import constant.Constant
+import state.ApplicationState
 import state.rememberApplicationState
 import ui.MinWindowSize
 import view.MainPager
@@ -13,8 +15,15 @@ fun main() = application {
     val applicationState = rememberApplicationState(rememberCoroutineScope(), rememberScrollState())
 
     Window(
-        title = "时间水印助手",
-        onCloseRequest = ::exitApplication,
+        title = if (applicationState.imageShowModel == ApplicationState.ImgShowModel.List) Constant.WindowTitleMain else Constant.WindowTitleGridImage,
+        onCloseRequest = {
+            if (applicationState.imageShowModel == ApplicationState.ImgShowModel.List) {
+                exitApplication()
+            }
+            else {
+                applicationState.imageShowModel = ApplicationState.ImgShowModel.List
+            }
+        },
         onKeyEvent = {
             applicationState.onKeyEvent(it)
         },

@@ -1,5 +1,6 @@
 package view
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +9,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ViewModule
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -59,18 +61,42 @@ fun ImageContent(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    bitmap = applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)].inputStream().buffered()
-                        .use(::loadImageBitmap),
-                    contentDescription = null,
+                Box(
                     modifier = Modifier
                         .height(CardSize.height / 2)
                         .fillMaxWidth()
-                        .clickable {
-                            applicationState.showPicture(applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)])
-                        },
-                    contentScale = ContentScale.Fit
-                )
+                ) {
+                    Image(
+                        bitmap = applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)].inputStream().buffered()
+                            .use(::loadImageBitmap),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .height(CardSize.height / 2)
+                            .fillMaxWidth()
+                            .clickable {
+                                applicationState.showPicture(applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)])
+                            },
+                        contentScale = ContentScale.Fit
+                    )
+
+                    this@Column.AnimatedVisibility(
+                        visible = applicationState.fileList.isNotEmpty(),
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                applicationState.imageShowModel = ApplicationState.ImgShowModel.Grid
+                            }
+                        ) {
+                            Icon(
+                                Icons.Outlined.ViewModule,
+                                null,
+                                tint = MaterialTheme.colors.primaryVariant
+                            )
+                        }
+                    }
+                }
+
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -99,13 +125,20 @@ fun ImageContent(
                             Row(
                                 modifier = Modifier.fillMaxWidth().then(
                                     if (state.showImageIndex == index) Modifier.background(MaterialTheme.colors.secondary)
-                                    else Modifier
+                                    else {
+                                        if (index % 2 == 0) {
+                                            Modifier.background(MaterialTheme.colors.secondaryVariant)
+                                        }
+                                        else {
+                                            Modifier
+                                        }
+                                    }
                                 ),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    item.absolutePath,
+                                    "${index+1}. ${item.absolutePath}",
                                     modifier = Modifier.clickable {
                                         state.showImageIndex = index
                                     }.weight(0.9f),

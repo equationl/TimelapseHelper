@@ -42,11 +42,16 @@ fun MainPager(applicationState: ApplicationState) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            ImageContent(applicationState)
+            if (applicationState.imageShowModel == ApplicationState.ImgShowModel.List) {
+                ImageContent(applicationState)
 
-            ControlContent(
-                applicationState = applicationState
-            )
+                ControlContent(
+                    applicationState = applicationState
+                )
+            }
+            else if (applicationState.imageShowModel == ApplicationState.ImgShowModel.Grid) {
+                ImageGridContent(applicationState)
+            }
         }
     }
 
