@@ -9,6 +9,7 @@ import utils.FilterGMT
 import utils.FilterNumber
 import utils.TextPos
 import java.io.File
+import java.util.*
 
 class ControlState {
     var outputPath by mutableStateOf("原路径")
@@ -38,7 +39,13 @@ class ControlState {
                 "ffmpeg"
             }
             FFmpegFrom.Bundle -> {
-                File(System.getProperty("compose.application.resources.dir")).resolve("ffmpeg.exe").absolutePath
+                val fileName = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) "ffmpeg.exe" else "ffmpeg"
+                val executableFile = File(System.getProperty("compose.application.resources.dir")).resolve(fileName)
+                if (!executableFile.canExecute()) {
+                    println("没有执行权限，正在尝试授予")
+                    executableFile.setExecutable(true)
+                }
+                executableFile.absolutePath
             }
             FFmpegFrom.Customize -> {
                 ffmpegPath

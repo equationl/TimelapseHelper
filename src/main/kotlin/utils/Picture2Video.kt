@@ -86,7 +86,8 @@ object Picture2Video {
         cmd.add(ffmpegRunnable)
         cmd.addAll("-y -r $pictureKeepTime -f concat -safe 0 -i".split(" "))
         cmd.add(pictureListFile.absolutePath)
-        cmd.addAll("-c:v libx264 -vf \"fps=$videoRate,format=yuv420p\"".split(" "))
+        // 似乎是这个文件的编码有问题，在 macOS 上识别不到转义的 " ，所以这里索性分开写了
+        cmd.addAll("-c:v libx264 -vf fps=$videoRate -vf format=yuv420p".split(" "))
         cmd.add(outputFile.absolutePath)
 
         ProcessExecutor()

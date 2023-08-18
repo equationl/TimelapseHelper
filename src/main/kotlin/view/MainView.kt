@@ -3,6 +3,7 @@ package view
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -71,7 +72,9 @@ fun MainPager(applicationState: ApplicationState) {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(applicationState.dialogText)
+                    SelectionContainer {
+                        Text(applicationState.dialogText)
+                    }
                 }
 
                 VerticalScrollbar(

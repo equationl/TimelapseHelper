@@ -85,7 +85,7 @@ fun downloadFFmpeg() {
         }
         else if (Os.isFamily(Os.FAMILY_MAC)) {
             executeDownload(macDownloadLink, cachePath.resolve("ffmpeg.zip"))
-            unzipMacFFmpeg(cachePath.resolve("ffmpeg.zip"), file(macDownloadLink))
+            unzipMacFFmpeg(cachePath.resolve("ffmpeg.zip"), file(macFile))
         }
         else {
             println("downloadFFmpeg: Not support Current System, You may need download for your system by yourself at: https://ffmpeg.org/download.html, then copy to '<RESOURCES_ROOT_DIR>/<OS_NAME>', such as `resources/macos/ffmpeg`")
@@ -123,7 +123,7 @@ fun unzipMacFFmpeg(cacheFile: File, saveFile: File) {
 
     println("downloadFFmpeg: unzip finish, start copy...")
 
-    cacheFile.parentFile.resolve("ffmpeg-6.0/ffmpeg").copyTo(saveFile)
+    cacheFile.parentFile.resolve("ffmpeg").copyTo(saveFile)
 
     println("downloadFFmpeg: copy finish! start remove cache...")
 
