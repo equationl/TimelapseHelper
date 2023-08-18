@@ -1,6 +1,8 @@
 package state
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.runtime.*
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.input.key.*
@@ -25,6 +27,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     lateinit var window: ComposeWindow
 
     val imgPreviewState = ImgPreviewState()
+    val imgPreviewGridState = ImgPreviewGridState()
     val controlState = ControlState()
 
     val fileList = mutableStateListOf<File>()
@@ -127,19 +130,43 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         if (keyEvent.type == KeyEventType.KeyDown) {
             when (keyEvent.key.nativeKeyCode) {
                 37 -> { // 向左
-                    minImgIndex()
+                    if (imageShowModel == ImgShowModel.List) {
+                        minImgIndex()
+                    }
+                    else {
+                        scrollBackward()
+                    }
+
                 }
 
                 38 -> { // 向上箭头
-                    minImgIndex()
+                    if (imageShowModel == ImgShowModel.List) {
+                        minImgIndex()
+                    }
+                    else {
+                        scrollBackward()
+                    }
+
                 }
 
                 39 -> { // 向右
-                    plusImgIndex()
+                    if (imageShowModel == ImgShowModel.List) {
+                        plusImgIndex()
+                    }
+                    else {
+                        scrollForward()
+                    }
+
                 }
 
                 40 -> { // 向下箭头
-                    plusImgIndex()
+                    if (imageShowModel == ImgShowModel.List) {
+                        plusImgIndex()
+                    }
+                    else {
+                        scrollForward()
+                    }
+
                 }
             }
         }
@@ -188,6 +215,45 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                 imgPreviewState.lazyListState.animateScrollToItem(imgPreviewState.showImageIndex)
             }
         }
+    }
+
+    /**
+     * 向前滑动，每次滑动一个可见范围距离，到达最底部时返回顶部
+     * */
+    @OptIn(ExperimentalFoundationApi::class)
+    private fun scrollForward() {
+        if ((imgPreviewGridState.lazyState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1 ) >= imgPreviewGridState.lazyState.layoutInfo.totalItemsCount - 1) {
+            scope.launch {
+                // 算不出来最大偏移值，所以改成跳转到最后一个 item
+                imgPreviewGridState.lazyState.scrollToItem(0)
+            }
+        }
+        else {
+            val scrollTo = imgPreviewGridState.lazyState.firstVisibleItemScrollOffset + imgPreviewGridState.lazyState.layoutInfo.viewportEndOffset
+            scope.launch {
+                imgPreviewGridState.lazyState.animateScrollBy(scrollTo.toFloat())
+            }
+        }
+
+    }
+
+    /**
+     * 向后滑动，每次滑动一个 item，达到最顶部时返回底部
+     * */
+    @OptIn(ExperimentalFoundationApi::class)
+    private fun scrollBackward() {
+        if (imgPreviewGridState.lazyState.firstVisibleItemIndex <= 1) {
+            scope.launch {
+                // 算不出来最大偏移值，所以改成跳转到最后一个 item
+                imgPreviewGridState.lazyState.scrollToItem(imgPreviewGridState.lazyState.layoutInfo.totalItemsCount)
+            }
+        }
+        else {
+            scope.launch {
+                imgPreviewGridState.lazyState.animateScrollToItem(imgPreviewGridState.lazyState.firstVisibleItemIndex - 1)
+            }
+        }
+
     }
 
     enum class ImgShowModel {

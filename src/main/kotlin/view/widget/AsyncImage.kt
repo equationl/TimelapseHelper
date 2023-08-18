@@ -1,6 +1,9 @@
 package view.widget
 
 import androidx.compose.foundation.Image
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -24,7 +27,7 @@ import java.net.URL
 fun <T> AsyncImage(
     load: suspend () -> T,
     painterFor: @Composable (T) -> Painter,
-    contentDescription: String,
+    contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
 ) {
@@ -47,6 +50,12 @@ fun <T> AsyncImage(
             contentDescription = contentDescription,
             contentScale = contentScale,
             modifier = modifier
+        )
+    }
+    else {
+        Icon(
+            Icons.Outlined.Image,
+            null
         )
     }
 }
