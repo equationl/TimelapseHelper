@@ -12,21 +12,14 @@ object Picture2Video {
     private const val GenerateVideoFileName = "timelapse_video_"
 
 
-    suspend fun orderFileListByTime(
-        fileList: List<PictureModel>
-    ): List<PictureModel> = withContext(Dispatchers.IO) {
-        return@withContext fileList
-            .sortedBy {
-                it.date?.time
-            }
-    }
-
     suspend fun picture2Video(
         fileList: List<PictureModel>,
         savePath: File,
         ffmpegRunnable: String,
         pictureKeepTime: Double,
         videoRate: Int,
+        videoCode: String,
+        videoSize: String,
         onProgress: (msg: String) -> Unit,
         onResult: (result: Result<String>) -> Unit
     ) = withContext(Dispatchers.IO) {
@@ -42,6 +35,8 @@ object Picture2Video {
                 ffmpegRunnable,
                 pictureKeepTime,
                 videoRate,
+                videoCode,
+                videoSize,
                 onProgress
             )
 
@@ -80,6 +75,8 @@ object Picture2Video {
         ffmpegRunnable: String,
         pictureKeepTime: Double,
         videoRate: Int,
+        videoCode: String,
+        videoSize: String,
         onProgress: (msg: String) -> Unit
     ): File {
         val cmd: MutableList<String> = mutableListOf()
@@ -87,8 +84,11 @@ object Picture2Video {
         cmd.addAll("-y -r $pictureKeepTime -f concat -safe 0 -i".split(" "))
         cmd.add(pictureListFile.absolutePath)
         // 似乎是这个文件的编码有问题，在 macOS 上识别不到转义的 " ，所以这里索性分开写了
-        cmd.addAll("-c:v libx264 -vf fps=$videoRate -vf format=yuv420p".split(" "))
+        cmd.addAll("-c:v $videoCode -vf fps=$videoRate -vf format=yuv420p".split(" "))
+        // see: https://stackoverflow.com/questions/25891342/creating-a-video-from-a-single-image-for-a-specific-duration-in-ffmpeg
+        cmd.addAll("-vf scale=${videoSize}:force_original_aspect_ratio=decrease:eval=frame,pad=${videoSize}:-1:-1:color=black".split(" "))
         cmd.add(outputFile.absolutePath)
+
 
         ProcessExecutor()
             .command(cmd)

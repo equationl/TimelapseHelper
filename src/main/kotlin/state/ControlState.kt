@@ -22,6 +22,7 @@ class ControlState {
     var isOnlyGenerateVideoWithAddText by mutableStateOf(false)
     var isAddTimeText by  mutableStateOf(true)
     var textPos by mutableStateOf(TextPos.LEFT_BOTTOM)
+    var videoCode by mutableStateOf(VideoCode.X264)
     val textColorFilter = FilterColorHex(defaultValue = TextFieldValue("#FFCCCCCC"))
     val textSizeFilter = FilterNumber(minValue = 1.0, decimalNumber = 0, defaultValue = TextFieldValue("80"))
     var dateFormat by mutableStateOf("yyyy.MM.dd HH:mm:ss")
@@ -29,11 +30,19 @@ class ControlState {
     val outputQualityTextFilter = FilterNumber(minValue = 0.0, maxValue = 1.0, defaultValue = TextFieldValue("0.7"))
     val pictureKeepTime = FilterNumber(minValue = 0.0, maxValue = Double.MAX_VALUE, decimalNumber = Int.MAX_VALUE, defaultValue = TextFieldValue("1.0"))
     val videoRate = FilterNumber(minValue = 1.0, maxValue = Double.MAX_VALUE, decimalNumber = 0, defaultValue = TextFieldValue("25"))
+    val videoWidth = FilterNumber(minValue = 1.0, maxValue = Double.MAX_VALUE, decimalNumber = 0, defaultValue = TextFieldValue("1920"))
+    val videoHeight = FilterNumber(minValue = 1.0, maxValue = Double.MAX_VALUE, decimalNumber = 0, defaultValue = TextFieldValue("1080"))
+    var isUsingDefaultVideoSize by mutableStateOf(true)
 
     enum class FFmpegFrom {
         System,
         Bundle,
         Customize
+    }
+
+    enum class VideoCode(val cmd: String) {
+        X264("libx264"),
+        X265("libx265")
     }
 
     fun getFfmpegBinaryPath(): String {

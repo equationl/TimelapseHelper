@@ -361,6 +361,80 @@ fun ControlContent(
                             )
                         }
 
+                        Text("视频编码")
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.height(IntrinsicSize.Min)
+                        ) {
+
+                            RadioButton(
+                                selected = state.videoCode == ControlState.VideoCode.X264,
+                                onClick = {
+                                    state.videoCode = ControlState.VideoCode.X264
+                                }
+                            )
+
+                            ToolTip("体积、质量不如 X265，但是几乎兼容所有播放器") {
+                                Text("x264", fontSize = 12.sp, modifier = Modifier.clickable {
+                                    state.videoCode = ControlState.VideoCode.X264
+                                })
+                            }
+
+                            Divider(
+                                modifier = Modifier.fillMaxHeight().padding(start = 24.dp).width(1.dp)
+                            )
+
+                            RadioButton(
+                                selected = state.videoCode == ControlState.VideoCode.X265,
+                                onClick = {
+                                    state.videoCode = ControlState.VideoCode.X265
+                                }
+                            )
+
+                            ToolTip("体积更小、质量更高，但是部分播放器可能不支持") {
+                                Text("x265", fontSize = 12.sp, modifier = Modifier.clickable {
+                                    state.videoCode = ControlState.VideoCode.X265
+                                })
+                            }
+
+                        }
+
+                        Text("分辨率(宽x高)：")
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            OutlinedTextField(
+                                value = state.videoWidth.getInputValue(),
+                                onValueChange = state.videoWidth.onValueChange(),
+                                enabled = !state.isUsingDefaultVideoSize,
+                                modifier = Modifier.fillMaxWidth().weight(1f)
+                            )
+                            Text("X")
+                            OutlinedTextField(
+                                value = state.videoHeight.getInputValue(),
+                                onValueChange = state.videoHeight.onValueChange(),
+                                enabled = !state.isUsingDefaultVideoSize,
+                                modifier = Modifier.fillMaxWidth().weight(1f)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth().weight(1f)
+                            ) {
+                                Checkbox(
+                                    checked = state.isUsingDefaultVideoSize,
+                                    onCheckedChange = {
+                                        state.isUsingDefaultVideoSize = it
+                                    },
+                                )
+                                ToolTip("将会直接使用第一张图片的分辨率") {
+                                    Text("默认", fontSize = 12.sp)
+                                }
+                            }
+                        }
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
