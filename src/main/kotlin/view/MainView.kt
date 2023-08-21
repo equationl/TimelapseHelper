@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import state.ApplicationState
 import ui.BackgroundColor
 import view.widget.dropFileTarget
@@ -22,7 +24,27 @@ import view.widget.filterFileList
 fun MainPager(applicationState: ApplicationState) {
 
     applicationState.window.contentPane.dropTarget = dropFileTarget {
-        applicationState.fileList.addAll(filterFileList(it, applicationState.controlState.timeZoneFilter.getInputValue().text))
+        applicationState.scope.launch(Dispatchers.IO) {
+            applicationState.isRunning = true
+            applicationState.changeDialogText("正在读取文件……", false)
+
+            applicationState.fileList.addAll(
+                filterFileList(
+                    it,
+                    applicationState.controlState.timeZoneFilter.getInputValue().text,
+                    onProgress = {
+                        applicationState.changeDialogText(it)
+                    }
+                )
+            )
+
+            applicationState.changeDialogText("正在重新排序……", false)
+
+            applicationState.reSortFileList()
+
+            applicationState.isRunning = false
+            applicationState.changeDialogText("", isAppend = false, isScroll = false)
+        }
     }
 
     /*DisposableEffect(Unit) {

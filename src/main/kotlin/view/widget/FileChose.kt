@@ -78,14 +78,15 @@ fun dropFileTarget(
 
 fun filterFileList(
     fileList: List<String>,
-    timeZoneID: String
+    timeZoneID: String,
+    onProgress: ((msg: String) -> Unit)? = null
 ): List<PictureModel> {
     val newFile = mutableListOf<File>()
     fileList.map {path ->
         newFile.add(File(path))
     }
 
-    return filterFileList(newFile.toTypedArray(), timeZoneID)
+    return filterFileList(newFile.toTypedArray(), timeZoneID, onProgress)
 }
 
 fun filterFileList(

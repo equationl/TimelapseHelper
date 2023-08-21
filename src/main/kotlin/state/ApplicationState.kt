@@ -210,30 +210,34 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
         windowShowPicture = picture
     }
 
+    // see: https://stackoverflow.com/questions/71121504/concurrentmodificationexception-during-mutablestatelistof-reverse
     suspend fun reSortFileList() {
         withContext(Dispatchers.IO) {
-            when (imgPreviewState.sortType) {
+            val tempList = when (imgPreviewState.sortType) {
                 ImgPreviewState.ImgSortType.TimeAsc -> {
-                    fileList.sortBy {
+                    fileList.sortedBy {
                         it.date?.time
                     }
                 }
                 ImgPreviewState.ImgSortType.TimeDesc -> {
-                    fileList.sortByDescending {
+                    fileList.sortedByDescending {
                         it.date?.time
                     }
                 }
                 ImgPreviewState.ImgSortType.NameAsc -> {
-                    fileList.sortBy {
+                    fileList.sortedBy {
                         it.file.absolutePath
                     }
                 }
                 ImgPreviewState.ImgSortType.NameDesc -> {
-                    fileList.sortByDescending {
+                    fileList.sortedByDescending {
                         it.file.absolutePath
                     }
                 }
             }
+
+            fileList.clear()
+            fileList.addAll(tempList)
         }
     }
 
