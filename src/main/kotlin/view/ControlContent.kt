@@ -360,6 +360,21 @@ fun ControlContent(
                                 onValueChange = state.videoRate.onValueChange(),
                             )
                         }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(
+                                checked = state.isOnlyGenerateVideoWithAddText,
+                                onCheckedChange = {
+                                    state.isOnlyGenerateVideoWithAddText = it
+                                },
+                                enabled = state.isAddTimeText
+                            )
+                            ToolTip("当同时添加水印和生成视频时该选项才可用；如果勾选该选项，则合成视频时不会合成添加水印失败的图片") {
+                                Text("仅合成成功添加水印的图片", fontSize = 12.sp)
+                            }
+                        }
                     }
                 }
 

@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.zeroturnaround.exec.ProcessExecutor
 import org.zeroturnaround.exec.stream.LogOutputStream
+import view.widget.PictureModel
 import java.io.File
 
 object Picture2Video {
@@ -12,17 +13,16 @@ object Picture2Video {
 
 
     suspend fun orderFileListByTime(
-        fileList: List<FileWithDate>
-    ): List<File>  = withContext(Dispatchers.IO) {
+        fileList: List<PictureModel>
+    ): List<PictureModel> = withContext(Dispatchers.IO) {
         return@withContext fileList
             .sortedBy {
-                it.date
+                it.date?.time
             }
-            .map { it.file }
     }
 
     suspend fun picture2Video(
-        fileList: List<File>,
+        fileList: List<PictureModel>,
         savePath: File,
         ffmpegRunnable: String,
         pictureKeepTime: Double,
@@ -57,7 +57,7 @@ object Picture2Video {
 
     private fun createPictureListFile(
         savePath: File,
-        fileList: List<File>,
+        fileList: List<PictureModel>,
     ): File {
         val pictureListFile = File(savePath, PictureListFileName)
         if (!pictureListFile.exists()) {
@@ -68,7 +68,7 @@ object Picture2Video {
         }
 
         for (file in fileList) {
-            pictureListFile.appendText("file '${file.absolutePath}'\n")
+            pictureListFile.appendText("file '${file.file.absolutePath}'\n")
         }
 
         return pictureListFile

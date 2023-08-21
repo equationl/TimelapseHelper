@@ -22,7 +22,7 @@ import view.widget.filterFileList
 fun MainPager(applicationState: ApplicationState) {
 
     applicationState.window.contentPane.dropTarget = dropFileTarget {
-        applicationState.fileList.addAll(filterFileList(it))
+        applicationState.fileList.addAll(filterFileList(it, applicationState.controlState.timeZoneFilter.getInputValue().text))
     }
 
     /*DisposableEffect(Unit) {

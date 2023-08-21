@@ -8,5 +8,14 @@ import androidx.compose.runtime.setValue
 
 class ImgPreviewState {
     var showImageIndex by mutableStateOf(0)
+    var sortType by mutableStateOf(ImgSortType.TimeAsc)
+
     lateinit var lazyListState: LazyListState
+
+    enum class ImgSortType(val isAsc: Boolean) {
+        TimeAsc(true),
+        TimeDesc(false),
+        NameAsc(true),
+        NameDesc(false)
+    }
 }

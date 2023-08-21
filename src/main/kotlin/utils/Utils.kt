@@ -7,6 +7,8 @@ import java.awt.Point
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.imageio.IIOImage
 import javax.imageio.ImageIO
 import javax.imageio.ImageWriteParam
@@ -75,6 +77,15 @@ fun saveImage(image: BufferedImage?, saveFile: File?, quality: Float) {
     jpgWriter.dispose()
     outputStream.flush()
     outputStream.close()
+}
+
+fun getDateString(date: Date, dateFormat: String): String? {
+    return try {
+        val simpleDateFormat = SimpleDateFormat(dateFormat)
+        simpleDateFormat.format(date)
+    } catch (tr: Throwable) {
+        null
+    }
 }
 
 private fun TextPos.getPoint(

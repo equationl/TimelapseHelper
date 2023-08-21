@@ -6,11 +6,10 @@ import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.runtime.*
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.input.key.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import utils.AddText
 import utils.Picture2Video
+import view.widget.PictureModel
 import view.widget.filterFileList
 import view.widget.showFileSelector
 import java.io.File
@@ -30,7 +29,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     val imgPreviewGridState = ImgPreviewGridState()
     val controlState = ControlState()
 
-    val fileList = mutableStateListOf<File>()
+    val fileList = mutableStateListOf<PictureModel>()
 
     var dialogText by mutableStateOf("")
     var isRunning by mutableStateOf(false)
@@ -42,7 +41,21 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     fun onClickImgChoose() {
         showFileSelector(
             onFileSelected = {
-                fileList.addAll(filterFileList(it))
+                scope.launch(Dispatchers.IO) {
+                    isRunning = true
+                    changeDialogText("正在读取文件……", false)
+                    fileList.addAll(
+                        filterFileList(it, controlState.timeZoneFilter.getInputValue().text) {
+                            changeDialogText(it)
+                        }
+                    )
+                    changeDialogText("正在重新排序……", false)
+
+                    reSortFileList()
+
+                    isRunning = false
+                    changeDialogText("", isAppend = false, isScroll = false)
+                }
             }
         )
     }
@@ -82,7 +95,9 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                         if (controlState.isGenerateVideo) { // 如果勾选了生成视频，则需要重新创建文件列表
                             addTextResult.failFileList.map { failText += "$it\n" }
 
-                            videoFileList = Picture2Video.orderFileListByTime(addTextResult.successFile)
+                            if (controlState.isOnlyGenerateVideoWithAddText) {
+                                videoFileList = addTextResult.successFile // Picture2Video.orderFileListByTime(addTextResult.successFile)
+                            }
                         } else {
                             isRunning = false
                             changeDialogText("处理完成！", false)
@@ -100,7 +115,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
             if (controlState.isGenerateVideo) {
                 Picture2Video.picture2Video(
                     videoFileList,
-                    if (controlState.isUsingSourcePath) File(videoFileList[0].parent) else File(controlState.outputPath),
+                    if (controlState.isUsingSourcePath) File(videoFileList[0].file.parent) else File(controlState.outputPath),
                     controlState.getFfmpegBinaryPath(),
                     if (controlState.isReciprocalPictureKeepTime) controlState.pictureKeepTime.getInputValue().text.toDouble() else (1.0 / (controlState.pictureKeepTime.getInputValue().text.toDoubleOrNull() ?: 1.0)),
                     controlState.videoRate.getInputValue().text.toInt(),
@@ -175,7 +190,13 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
     }
 
     fun changeDialogText(newMsg: String, isAppend: Boolean = true, isScroll: Boolean = true) {
-        dialogText = if (isAppend) "$dialogText\n$newMsg" else newMsg
+        val totalTextLength = 10000
+        var tempText = if (isAppend) "$dialogText\n$newMsg" else newMsg
+        if (tempText.length > totalTextLength) {
+            tempText = "……" + tempText.substring(tempText.length - totalTextLength)
+        }
+
+        dialogText = tempText
 
         if (isScroll) {
             scope.launch {
@@ -187,6 +208,33 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
 
     fun showPicture(picture: File?) {
         windowShowPicture = picture
+    }
+
+    suspend fun reSortFileList() {
+        withContext(Dispatchers.IO) {
+            when (imgPreviewState.sortType) {
+                ImgPreviewState.ImgSortType.TimeAsc -> {
+                    fileList.sortBy {
+                        it.date?.time
+                    }
+                }
+                ImgPreviewState.ImgSortType.TimeDesc -> {
+                    fileList.sortByDescending {
+                        it.date?.time
+                    }
+                }
+                ImgPreviewState.ImgSortType.NameAsc -> {
+                    fileList.sortBy {
+                        it.file.absolutePath
+                    }
+                }
+                ImgPreviewState.ImgSortType.NameDesc -> {
+                    fileList.sortByDescending {
+                        it.file.absolutePath
+                    }
+                }
+            }
+        }
     }
 
     private fun minImgIndex() {

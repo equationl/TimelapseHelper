@@ -4,14 +4,16 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.ArrowDropUp
 import androidx.compose.material.icons.outlined.ViewModule
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,12 +21,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import constant.Constant
+import kotlinx.coroutines.launch
 import state.ApplicationState
+import state.ImgPreviewState
 import ui.CardColor
+import utils.getDateString
 import view.widget.legalSuffixList
-import java.io.File
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ImageContent(
     applicationState: ApplicationState,
@@ -67,13 +72,13 @@ fun ImageContent(
                         .weight(1f)
                 ) {
                     Image(
-                        bitmap = applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)].inputStream().buffered()
+                        bitmap = applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)].file.inputStream().buffered()
                             .use(::loadImageBitmap),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
                             .clickable {
-                                applicationState.showPicture(applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)])
+                                applicationState.showPicture(applicationState.fileList[state.showImageIndex.coerceAtMost(applicationState.fileList.lastIndex)].file)
                             },
                         contentScale = ContentScale.Fit
                     )
@@ -120,41 +125,117 @@ fun ImageContent(
                         .fillMaxSize()
                         .weight(1f)
                 ) {
+                    var lastTitle = remember { "" }
                     LazyColumn(
                         state = state.lazyListState,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        itemsIndexed(applicationState.fileList) { index: Int, item: File ->
+                        item {
                             Row(
-                                modifier = Modifier.fillMaxWidth().then(
-                                    if (state.showImageIndex == index) Modifier.background(MaterialTheme.colors.secondary)
-                                    else {
-                                        if (index % 2 == 0) {
-                                            Modifier.background(MaterialTheme.colors.secondaryVariant)
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.height(IntrinsicSize.Min)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp).clickable {
+                                        when (state.sortType) {
+                                            ImgPreviewState.ImgSortType.TimeAsc -> {
+                                                state.sortType = ImgPreviewState.ImgSortType.TimeDesc
+                                            }
+                                            ImgPreviewState.ImgSortType.TimeDesc -> {
+                                                state.sortType = ImgPreviewState.ImgSortType.TimeAsc
+                                            }
+                                            else -> {
+                                                state.sortType = ImgPreviewState.ImgSortType.TimeAsc
+                                            }
                                         }
-                                        else {
-                                            Modifier
+
+                                        applicationState.scope.launch {
+                                            applicationState.reSortFileList()
                                         }
                                     }
-                                ),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    "${index+1}. ${item.absolutePath}",
-                                    modifier = Modifier.clickable {
-                                        state.showImageIndex = index
-                                    }.weight(0.9f),
-                                    color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
+                                ) {
+                                    Text("时间", color = if (state.sortType == ImgPreviewState.ImgSortType.TimeDesc || state.sortType == ImgPreviewState.ImgSortType.TimeAsc) MaterialTheme.colors.primary else Color.Unspecified)
+                                    Icon(if (state.sortType.isAsc) Icons.Outlined.ArrowDropUp else Icons.Outlined.ArrowDropDown, null, tint = if (state.sortType == ImgPreviewState.ImgSortType.TimeDesc || state.sortType == ImgPreviewState.ImgSortType.TimeAsc) MaterialTheme.colors.primary else Color.Unspecified)
+                                }
+
+                                Divider(
+                                    Modifier.fillMaxHeight().width(1.dp)
                                 )
 
-                                Icon(
-                                    imageVector = Icons.Rounded.Delete,
-                                    contentDescription = null,
-                                    modifier = Modifier.clickable {
-                                        applicationState.onDelImg(index)
-                                    }.weight(0.1f)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp).clickable {
+                                        when (state.sortType) {
+                                            ImgPreviewState.ImgSortType.NameAsc -> {
+                                                state.sortType = ImgPreviewState.ImgSortType.NameDesc
+                                            }
+                                            ImgPreviewState.ImgSortType.NameDesc -> {
+                                                state.sortType = ImgPreviewState.ImgSortType.NameAsc
+                                            }
+                                            else -> {
+                                                state.sortType = ImgPreviewState.ImgSortType.NameAsc
+                                            }
+                                        }
+
+                                        applicationState.scope.launch {
+                                            applicationState.reSortFileList()
+                                        }
+                                    }
+                                ) {
+                                    Text("名称", color = if (state.sortType == ImgPreviewState.ImgSortType.NameDesc || state.sortType == ImgPreviewState.ImgSortType.NameAsc) MaterialTheme.colors.primary else Color.Unspecified)
+                                    Icon(if (state.sortType.isAsc) Icons.Outlined.ArrowDropUp else Icons.Outlined.ArrowDropDown, null, tint = if (state.sortType == ImgPreviewState.ImgSortType.NameDesc || state.sortType == ImgPreviewState.ImgSortType.NameAsc) MaterialTheme.colors.primary else Color.Unspecified)
+                                }
+                            }
+                        }
+
+                        applicationState.fileList.forEachIndexed { index, pictureModel ->
+                            if (lastTitle != pictureModel.file.parent) {
+                                stickyHeader {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Surface {
+                                            Text(pictureModel.file.parent)
+                                        }
+                                    }
+                                }
+                                lastTitle = pictureModel.file.parent
+                            }
+
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().then(
+                                        if (state.showImageIndex == index) Modifier.background(MaterialTheme.colors.secondary)
+                                        else {
+                                            if (index % 2 == 0) {
+                                                Modifier.background(MaterialTheme.colors.secondaryVariant)
+                                            }
+                                            else {
+                                                Modifier
+                                            }
+                                        }
+                                    ),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "${index+1}. [${pictureModel.date?.let { getDateString(it, Constant.DefaultDateFormat) }}, ${pictureModel.resolution?.let { "${it.height}x${it.width}" }}] ${pictureModel.file.name}",
+                                        modifier = Modifier.clickable {
+                                            state.showImageIndex = index
+                                        }.weight(0.9f),
+                                        color = if (state.showImageIndex == index) MaterialTheme.colors.onSecondary else Color.Unspecified
+                                    )
+
+                                    Icon(
+                                        imageVector = Icons.Rounded.Delete,
+                                        contentDescription = null,
+                                        modifier = Modifier.clickable {
+                                            applicationState.onDelImg(index)
+                                        }.weight(0.1f)
+                                    )
+                                }
                             }
                         }
                     }

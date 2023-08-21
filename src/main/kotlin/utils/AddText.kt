@@ -2,8 +2,10 @@ package utils
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifSubIFDDirectory
+import constant.Constant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import view.widget.PictureModel
 import java.awt.image.BufferedImage
 import java.io.File
 import java.text.SimpleDateFormat
@@ -18,13 +20,13 @@ object AddText {
         textColor: String,
         textSize: String,
         dateFormat: String,
-        fileList: List<File>,
+        fileList: List<PictureModel>,
         timeZone: String,
         outputQualityText: String,
         onProgress: (msg: String) -> Unit
     ): Result<AddTextResult> {
         val failFileList = mutableListOf<String>()
-        val successFileList = mutableListOf<FileWithDate>()
+        val successFileList = mutableListOf<PictureModel>()
 
         onProgress("检查参数")
         val checkValueResult = withContext(Dispatchers.IO) {
@@ -55,7 +57,7 @@ object AddText {
 }
 
 private fun addWatermark(
-    file: File,
+    file: PictureModel,
     outputPath: String,
     isUsingSourcePath: Boolean,
     textPos: TextPos,
@@ -64,16 +66,25 @@ private fun addWatermark(
     dateFormat: String,
     timeZone: String,
     outputQualityText: String
-): Result<FileWithDate> {
-    val date = getDateFromExif(file, timeZone) ?: return Result.failure(AddTextException("获取时间戳失败！"))
+): Result<PictureModel> {
+
+    var date = file.date
+
+    if (timeZone != Constant.DefaultTimeZone) { // 只有时区变了才需要重新获取时间
+        date = getDateFromExif(file.file, timeZone) ?: return Result.failure(AddTextException("获取时间戳失败！"))
+    }
+
+    if (date == null) {
+        return Result.failure(AddTextException("获取时间戳失败！"))
+    }
 
     val dateString = getDateString(date, dateFormat) ?: return Result.failure(AddTextException("转换时间失败！"))
 
-    val saveFile = if (isUsingSourcePath) file.getUniqueFile() else File(outputPath).getUniqueFile(file)
+    val saveFile = if (isUsingSourcePath) file.file.getUniqueFile() else File(outputPath).getUniqueFile(file.file)
 
-    addTextToJpg(file, saveFile, textColor, textSize, textPos, dateString, outputQualityText).fold(
+    addTextToJpg(file.file, saveFile, textColor, textSize, textPos, dateString, outputQualityText).fold(
         onSuccess = {
-            return Result.success(FileWithDate(it, date.time))
+            return Result.success(PictureModel(it, date, file.resolution))
         },
         onFailure = {
             return Result.failure(it)
@@ -125,15 +136,6 @@ private fun File.getUniqueFile(sourceFile: File = File("")): File {
     }
 
     return newFile
-}
-
-private fun getDateString(date: Date, dateFormat: String): String? {
-    return try {
-        val simpleDateFormat = SimpleDateFormat(dateFormat)
-        simpleDateFormat.format(date)
-    } catch (tr: Throwable) {
-        null
-    }
 }
 
 private fun getDateFromExif(
@@ -201,12 +203,7 @@ private fun checkValue(
 
 data class AddTextResult(
     val failFileList: List<String>,
-    val successFile: List<FileWithDate>,
-)
-
-data class FileWithDate(
-    val file: File,
-    val date: Long
+    val successFile: List<PictureModel>,
 )
 
 class AddTextException(msg: String = "No Msg"): Exception(msg)

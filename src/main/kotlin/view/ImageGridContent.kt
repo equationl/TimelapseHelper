@@ -25,9 +25,9 @@ import state.ApplicationState
 import ui.CardColor
 import view.common.rememberLazyFGridScrollbarAdapter
 import view.widget.AsyncImage
+import view.widget.PictureModel
 import view.widget.ToolTip
 import view.widget.loadImageBitmap
-import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -51,21 +51,21 @@ fun ImageGridContent(applicationState: ApplicationState) {
             ) {
                 itemsIndexed(
                     applicationState.fileList,
-                    key = {index: Int, item: File -> item.absolutePath }
-                ) { index: Int, item: File ->
+                    key = {index: Int, item: PictureModel -> item.file.absolutePath }
+                ) { index: Int, item: PictureModel ->
                     ToolTip(
-                        tipText = item.absolutePath,
+                        tipText = item.file.absolutePath,
                     ) {
                         Card(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .combinedClickable(
                                     onDoubleClick = {
-                                        applicationState.showPicture(item)
+                                        applicationState.showPicture(item.file)
                                     }
                                 ) {
                                     // onclick
-                                    applicationState.showPicture(item)
+                                    applicationState.showPicture(item.file)
                                 }
                         ) {
                             Column(
@@ -73,12 +73,12 @@ fun ImageGridContent(applicationState: ApplicationState) {
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AsyncImage(
-                                    load = { loadImageBitmap(item) },
+                                    load = { loadImageBitmap(item.file) },
                                     painterFor = { remember { BitmapPainter(it) } },
                                     contentDescription = null,
                                     contentScale = ContentScale.Fit
                                 )
-                                Text("${index+1}. ${item.name}")
+                                Text("${index+1}. ${item.file.name}")
                             }
                         }
                     }
