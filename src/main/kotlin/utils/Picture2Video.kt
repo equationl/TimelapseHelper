@@ -25,7 +25,7 @@ object Picture2Video {
     ) = withContext(Dispatchers.IO) {
         try {
             onProgress("正在生成列表文件")
-            val pictureListFile = createPictureListFile(savePath, fileList)
+            val pictureListFile = createPictureListFile(savePath, fileList, pictureKeepTime)
 
             onProgress("开始创建视频")
 
@@ -33,7 +33,6 @@ object Picture2Video {
                 File(savePath, "${GenerateVideoFileName}${System.currentTimeMillis()}.mp4"),
                 pictureListFile,
                 ffmpegRunnable,
-                pictureKeepTime,
                 videoRate,
                 videoCode,
                 videoSize,
@@ -53,6 +52,7 @@ object Picture2Video {
     private fun createPictureListFile(
         savePath: File,
         fileList: List<PictureModel>,
+        pictureKeepTime: Double
     ): File {
         val pictureListFile = File(savePath, PictureListFileName)
         if (!pictureListFile.exists()) {
@@ -63,7 +63,7 @@ object Picture2Video {
         }
 
         for (file in fileList) {
-            pictureListFile.appendText("file '${file.file.absolutePath}'\n")
+            pictureListFile.appendText("file '${file.file.absolutePath}'\nduration $pictureKeepTime\n")
         }
 
         return pictureListFile
@@ -73,7 +73,6 @@ object Picture2Video {
         outputFile: File,
         pictureListFile: File,
         ffmpegRunnable: String,
-        pictureKeepTime: Double,
         videoRate: Int,
         videoCode: String,
         videoSize: String,
@@ -81,10 +80,10 @@ object Picture2Video {
     ): File {
         val cmd: MutableList<String> = mutableListOf()
         cmd.add(ffmpegRunnable)
-        cmd.addAll("-y -r $pictureKeepTime -f concat -safe 0 -i".split(" "))
+        cmd.addAll("-y -f concat -safe 0 -i".split(" "))
         cmd.add(pictureListFile.absolutePath)
         // 似乎是这个文件的编码有问题，在 macOS 上识别不到转义的 " ，所以这里索性分开写了
-        cmd.addAll("-c:v $videoCode -vf fps=$videoRate -vf format=yuv420p".split(" "))
+        cmd.addAll("-r $videoRate -c:v $videoCode -vf format=yuv420p".split(" "))
         // see: https://stackoverflow.com/questions/25891342/creating-a-video-from-a-single-image-for-a-specific-duration-in-ffmpeg
         cmd.addAll("-vf scale=${videoSize}:force_original_aspect_ratio=decrease:eval=frame,pad=${videoSize}:-1:-1:color=black".split(" "))
         cmd.add(outputFile.absolutePath)

@@ -117,7 +117,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                     videoFileList,
                     if (controlState.isUsingSourcePath) File(videoFileList[0].file.parent) else File(controlState.outputPath),
                     controlState.getFfmpegBinaryPath(),
-                    if (controlState.isReciprocalPictureKeepTime) controlState.pictureKeepTime.getInputValue().text.toDouble() else (1.0 / (controlState.pictureKeepTime.getInputValue().text.toDoubleOrNull() ?: 1.0)),
+                    if (controlState.isReciprocalPictureKeepTime) (1.0 / (controlState.pictureKeepTime.getInputValue().text.toDoubleOrNull() ?: 1.0)) else controlState.pictureKeepTime.getInputValue().text.toDouble(),
                     controlState.videoRate.getInputValue().text.toInt(),
                     controlState.videoCode.cmd,
                     if (controlState.isUsingDefaultVideoSize) "${fileList.first().resolution?.width ?: 1}:${fileList.first().resolution?.height ?: 1}" else "${controlState.videoWidth.getInputValue().text}:${controlState.videoHeight.getInputValue().text}",
