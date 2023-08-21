@@ -102,7 +102,7 @@ class ApplicationState(val scope: CoroutineScope, val dialogScrollState: ScrollS
                     videoFileList,
                     if (controlState.isUsingSourcePath) File(videoFileList[0].parent) else File(controlState.outputPath),
                     controlState.getFfmpegBinaryPath(),
-                    controlState.pictureKeepTime.getInputValue().text.toDouble(),
+                    if (controlState.isReciprocalPictureKeepTime) controlState.pictureKeepTime.getInputValue().text.toDouble() else (1.0 / (controlState.pictureKeepTime.getInputValue().text.toDoubleOrNull() ?: 1.0)),
                     controlState.videoRate.getInputValue().text.toInt(),
                     onProgress = {
                         changeDialogText(it)

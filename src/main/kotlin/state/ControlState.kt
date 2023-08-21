@@ -15,6 +15,7 @@ class ControlState {
     var outputPath by mutableStateOf("原路径")
     var ffmpegPath by  mutableStateOf("")
     var isUsingSourcePath by mutableStateOf(true)
+    var isReciprocalPictureKeepTime by mutableStateOf(false)
     var ffmpegFrom by mutableStateOf(FFmpegFrom.Bundle)
     var isGenerateVideo by mutableStateOf(false)
     var isAddTimeText by  mutableStateOf(true)
@@ -24,7 +25,7 @@ class ControlState {
     var dateFormat by mutableStateOf("yyyy.MM.dd HH:mm:ss")
     val timeZoneFilter = FilterGMT(TextFieldValue("GMT+8:00"))
     val outputQualityTextFilter = FilterNumber(minValue = 0.0, maxValue = 1.0, defaultValue = TextFieldValue("0.7"))
-    val pictureKeepTime = FilterNumber(minValue = 0.0, maxValue = Double.MAX_VALUE, decimalNumber = Int.MAX_VALUE, defaultValue = TextFieldValue("1"))
+    val pictureKeepTime = FilterNumber(minValue = 0.0, maxValue = Double.MAX_VALUE, decimalNumber = Int.MAX_VALUE, defaultValue = TextFieldValue("1.0"))
     val videoRate = FilterNumber(minValue = 1.0, maxValue = Double.MAX_VALUE, decimalNumber = 0, defaultValue = TextFieldValue("25"))
 
     enum class FFmpegFrom {

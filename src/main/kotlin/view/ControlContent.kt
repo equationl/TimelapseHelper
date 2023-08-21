@@ -320,14 +320,33 @@ fun ControlContent(
                         Row(
                             modifier = Modifier.padding(top = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("每张图片持续时间（倒数）：")
+                            Text("每张图片持续时间（s）：")
 
-                            ToolTip("例如：填 1 表示每张图片持续 1s； 填 5 表示每张图片持续 0.2s； 填 0.5 表示每张图片持续 2s") {
-                                OutlinedTextField(
-                                    value = state.pictureKeepTime.getInputValue(),
-                                    onValueChange = state.pictureKeepTime.onValueChange(),
-                                )
+                            OutlinedTextField(
+                                value = state.pictureKeepTime.getInputValue(),
+                                onValueChange = state.pictureKeepTime.onValueChange(),
+                                modifier = Modifier.fillMaxWidth(0.6f)
+                            )
+
+                            ToolTip("将持续时间以倒数的形式设置，这有助于计算帧率，例如勾选“倒数”后，持续时间填写 25，帧率填写 25，则表示每张图片持续一帧") {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable {
+                                        state.isReciprocalPictureKeepTime = !state.isReciprocalPictureKeepTime
+                                        state.pictureKeepTime.setValue((1.0 / (state.pictureKeepTime.getInputValue().text.toDoubleOrNull() ?: 1.0)).toString())
+                                    }
+                                ) {
+                                    Checkbox(
+                                        checked = state.isReciprocalPictureKeepTime,
+                                        onCheckedChange = {
+                                            state.isReciprocalPictureKeepTime = it
+                                            state.pictureKeepTime.setValue((1.0 / (state.pictureKeepTime.getInputValue().text.toDoubleOrNull() ?: 1.0)).toString())
+                                        }
+                                    )
+                                    Text("倒数", fontSize = 12.sp)
+                                }
                             }
                         }
 

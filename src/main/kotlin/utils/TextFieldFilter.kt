@@ -493,4 +493,11 @@ open class BaseFieldFilter(defaultValue: TextFieldValue = TextFieldValue("")) {
             inputValue.value = onFilter(it, inputValue.value)
         }
     }
+
+    fun setValue(newValue: String) {
+        inputValue.value = TextFieldValue(
+            text = newValue,
+            selection = TextRange(newValue.length)
+        )
+    }
 }
