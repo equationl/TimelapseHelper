@@ -51,7 +51,7 @@ fun ImageGridContent(applicationState: ApplicationState) {
             ) {
                 itemsIndexed(
                     applicationState.fileList,
-                    key = {index: Int, item: PictureModel -> item.file.absolutePath }
+                    key = {index: Int, item: PictureModel -> "$index - ${item.file.absolutePath}" }
                 ) { index: Int, item: PictureModel ->
                     ToolTip(
                         tipText = item.file.absolutePath,
