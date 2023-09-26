@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -16,12 +16,17 @@ import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.loadXmlImageVector
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.xml.sax.InputSource
+import utils.saveImage
+import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import java.net.URL
+import javax.imageio.ImageIO
+
 
 @Composable
 fun <T> AsyncImage(
@@ -62,6 +67,55 @@ fun <T> AsyncImage(
 
 /* Loading from file with java.io API */
 
+fun loadThumbnailBitmapPainter(file: File, scale: Float = 0.2f, minSize: IntSize = IntSize(128, 128)): Painter {
+    val cachePainter = readFromCache(file)
+    if (cachePainter != null) {
+        return cachePainter
+    }
+
+    val image = ImageIO.read(file)
+
+    val newHeight = (image.height * scale).toInt()
+    val newWidth = (image.width * scale).toInt()
+
+    if (newHeight <= minSize.height || newWidth <= minSize.width) return image.toPainter()
+
+    val scaleImg = image.resizeImage(newWidth, newHeight)
+
+    saveToCache(scaleImg, file)
+
+    return scaleImg.toPainter()
+}
+
+private fun readFromCache(file: File): Painter? {
+    try {
+        val cacheFile = getCacheFile(file)
+        if (cacheFile.exists()) {
+            val image = ImageIO.read(cacheFile)
+            return image.toPainter()
+        }
+        else {
+            println("cache not exist!")
+            return null
+        }
+    } catch (tr: Throwable) {
+        tr.printStackTrace()
+        return null
+    }
+}
+
+private fun saveToCache(scaleImg: BufferedImage, file: File) {
+    try {
+        saveImage(scaleImg, getCacheFile(file), 0.7f)
+    } catch (tr: Throwable) {
+        tr.printStackTrace()
+    }
+}
+
+private fun getCacheFile(file: File): File {
+    return File(getCachePath(), "cache-${file.absolutePath.hashCode()}")
+}
+
 fun loadImageBitmap(file: File): ImageBitmap =
     file.inputStream().buffered().use(::loadImageBitmap)
 
@@ -101,3 +155,23 @@ private suspend fun urlStream(url: String) = HttpClient(CIO).use {
 }
 
  */
+
+@Throws(IOException::class)
+private fun BufferedImage.resizeImage(targetWidth: Int, targetHeight: Int): BufferedImage {
+    val resizedImage = BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB)
+    val graphics2D = resizedImage.createGraphics()
+    graphics2D.drawImage(this, 0, 0, targetWidth, targetHeight, null)
+    graphics2D.dispose()
+    return resizedImage
+}
+
+fun getCachePath(): File? {
+    return try {
+        val cachePath = File(System.getProperty("compose.application.resources.dir")).resolve("cache/img/")
+        cachePath.mkdirs()
+        cachePath
+    } catch (tr: Throwable) {
+        tr.printStackTrace()
+        null
+    }
+}

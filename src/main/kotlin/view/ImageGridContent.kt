@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import state.ApplicationState
@@ -27,7 +26,7 @@ import view.common.rememberLazyFGridScrollbarAdapter
 import view.widget.AsyncImage
 import view.widget.PictureModel
 import view.widget.ToolTip
-import view.widget.loadImageBitmap
+import view.widget.loadThumbnailBitmapPainter
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -73,8 +72,8 @@ fun ImageGridContent(applicationState: ApplicationState) {
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AsyncImage(
-                                    load = { loadImageBitmap(item.file) },
-                                    painterFor = { remember { BitmapPainter(it) } },
+                                    load = { loadThumbnailBitmapPainter(item.file) },
+                                    painterFor = { remember { it } },
                                     contentDescription = null,
                                     contentScale = ContentScale.Fit
                                 )
