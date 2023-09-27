@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.xml.sax.InputSource
+import utils.md5
 import utils.saveImage
 import java.awt.image.BufferedImage
 import java.io.File
@@ -113,7 +114,7 @@ private fun saveToCache(scaleImg: BufferedImage, file: File) {
 }
 
 private fun getCacheFile(file: File): File {
-    return File(getCachePath(), "cache-${file.absolutePath.hashCode()}")
+    return File(getCachePath(), "cache-${file.absolutePath.md5()}")
 }
 
 fun loadImageBitmap(file: File): ImageBitmap =
